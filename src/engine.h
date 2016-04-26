@@ -9,17 +9,17 @@
 /**
  * Initializes a game. Needed before first INIT.
  */
-void start_game();
+void startGame();
 
 /**
  * Frees memory. Needed after finishing game.
  */
-void end_game();
+void endGame();
 
 /**
  * Initializes a game with size of a board, number of rounds and positions of kings.
  */
-int init(int n, int k, int p, int x1, int y1, int x2, int y2);
+int init(int boardSize, int turnNumber, int player, int x1, int y1, int x2, int y2);
 
 /**
  * Makes a move.
@@ -31,15 +31,21 @@ int init(int n, int k, int p, int x1, int y1, int x2, int y2);
  */
 int move(int x1, int y1, int x2, int y2);
 
-int produce_knight(int x1, int y1, int x2, int y2);
+int produceKnight(int x1, int y1, int x2, int y2);
 
-int produce_peasant(int x1, int y1, int x2, int y2);
+int producePeasant(int x1, int y1, int x2, int y2);
 
-int end_turn();
+int endTurn();
+
+/**
+ * czy koniec gry
+ */
+int koniecGry();
+
 
 /**
  * Prints (into stdout) top-left corner of the board of size m x m where m = min(n,10).
  */
-void print_topleft();
+void printTopleft();
 
 #endif /* ENGINE_H */
