@@ -26,8 +26,9 @@ static char topleft[11][11]; // lewy gorny rog
 static int globalBoardSize; // rozmiar planszy
 static int gameOver; // czygraskonczona
 static int kingOne, kingTwo; // czy zyje krol1/krol2
-static int liczbaInitow = 0; // ile initow juz bylo
+static int liczbaInitow; // ile initow juz bylo
 static int initialisedPlayer = -1; // numer gracza, ktory juz byl zainicjalizowany
+
 /**
  * czy koniec gry
  */
@@ -59,8 +60,7 @@ static char mark(enum unitType unit, int playerNumber) {
 		break;
 		
 		case KNIGHT : if (playerNumber == 1) return 'R'; else return 'r';
-		break;
-			
+		break;	
 	}
 	
 	return '.';
@@ -74,7 +74,7 @@ static int isEmptyList(UnitsList uniList) {
 }
 
 /**
- * tworzymy nowa jednostke, jesli sie nie da zwracamy NULL
+ * tworzymy i zwracamy nowa jednostke, jesli sie nie da zwracamy NULL
  * zakladamy ze wspolrzedne sa poprawne
  */
 static UnitsList makeUnit(int x, int y, enum unitType type) {
@@ -98,9 +98,9 @@ static UnitsList makeUnit(int x, int y, enum unitType type) {
 
 /**
  * dodajemy jednostke na liste
- * zwracamy jeden jesli nie mozna
  * dodajemy tez na lewy gorny rog jesli mozna
  * zakladamy z gory ze wspolrzedne poprawne
+ * zwracamy ta jednostke
  */
 static UnitsList addUnit(int x, int y, enum unitType type) {
 	UnitsList newUnit = makeUnit(x, y, type);
@@ -146,13 +146,10 @@ static void removeUnit(UnitsList uniList) {
 	if(uniList->next != NULL) uniList->next->previous = uniList->previous;
 	
 	if(uniList == globalUnitsList) globalUnitsList = uniList->next;
-	
-	int x = uniList->x;
-	int y = uniList->y;
 			
 	// usuwamy z topleft jesli sie w nim miesci
-	if (x <= 10 && y <= 10)
-		topleft[x][y] = '.';
+	if (uniList->x <= 10 && uniList->y <= 10)
+		topleft[uniList->x][uniList->y] = '.';
 	
 	// jesli usuwamy krola to koniec gry
 	if(uniList->type == KING) {
@@ -175,7 +172,6 @@ static void removeList(UnitsList uniList) {
 	free(uniList);
 }
 
-
 /**
  * czy punkty sasiaduja ze soba
  */
@@ -192,8 +188,9 @@ void startGame() {
 	kingTwo = 1;
 	actualTurnNumber = 1;
 	actualPlayer = 1;
-	int i, j;
+	liczbaInitow = 0;
 	
+	int i, j;
 	for (i = 1; i <= 10; i++)
 		for (j = 1; j <= 10; j++)
 			topleft[i][j] = '.';
@@ -203,9 +200,9 @@ void startGame() {
  * czyszczenie pamieci, wypisanie wyniku gry
  * czy zakonczylo sie poprawnie czy nie
  */
-void endGame(int poprawnie) { 
+void endGame(int correct) { 
 	removeList(globalUnitsList);
-	if (poprawnie) {
+	if (correct) {
 		if (kingOne == kingTwo) fprintf(stderr, "DRAW\n");
 		else if (kingOne > kingTwo) fprintf(stderr, "PLAYER 1 won\n");
 		else fprintf(stderr, "PLAYER 2 won\n");
@@ -216,7 +213,7 @@ void endGame(int poprawnie) {
 }
 
 /**
- * wypisuje lewy gorny rog tablicy (10 X 10) lub mniej jesli mniejszy
+ * wypisuje lewy gorny rog tablicy (rozmiaru 10 X 10 lub mniej jesli mniejszy)
  */
 void printTopleft() {
 	int i, j;
@@ -228,6 +225,16 @@ void printTopleft() {
 	}
 	
 	printf("\n");
+}
+
+/**
+ * Rozstawiamy jednostki na poczatkowych pozycjach.
+ */
+static void firstDistribution (int x, int y) {
+		addUnit(x, y, KING) ;
+		addUnit(x + 1, y, PEASANT);
+		addUnit(x + 2, y, KNIGHT);
+		addUnit(x + 3, y, KNIGHT);
 }
 
 /**
@@ -261,22 +268,14 @@ int init(int boardSize, int turnNumber, int player, int x1, int y1, int x2, int 
 	if(!insideBoard(x2 + 3, y2, boardSize)) return 1;
 	
 	if (liczbaInitow == 0) {
-		actualPlayer = 1;
 		globalBoardSize = boardSize;
 		gameTurnNumber = turnNumber;
-								
-		addUnit(x1, y1, KING) ;
-		addUnit(x1 + 1, y1, PEASANT);
-		addUnit(x1 + 2, y1, KNIGHT);
-		addUnit(x1 + 3, y1, KNIGHT);
+	
+		actualPlayer = 1;	
+		firstDistribution(x1, y1);
 		
 		actualPlayer = 2;
-		
-		addUnit(x2, y2, KING);
-		addUnit(x2 + 1, y2, PEASANT);
-		addUnit(x2 + 2, y2, KNIGHT);
-		addUnit(x2 + 3, y2, KNIGHT);
-
+		firstDistribution(x2, y2);
 	}
 	
 	if (liczbaInitow == 1) {
@@ -302,16 +301,24 @@ int init(int boardSize, int turnNumber, int player, int x1, int y1, int x2, int 
 /**
  * walka miedzy jednostkami
  * w zalozeniu sa na tym samym polu i istnieja
+ * zwraca 0 - remis, 1 - wygral pierwszy, 2 - wygral drugi
  */
-static void walka(UnitsList unitFirst, UnitsList unitSecond) {
-	if (unitFirst->priority > unitSecond->priority) removeUnit(unitSecond);
-	else if(unitFirst->priority < unitSecond->priority) removeUnit(unitFirst);
-	else {
-		removeUnit(unitFirst);
+static int walka(UnitsList unitFirst, UnitsList unitSecond) {
+	if (unitFirst->priority > unitSecond->priority)  {
 		removeUnit(unitSecond);
+		return 1;
 	}
+	
+	if(unitFirst->priority < unitSecond->priority) {
+		 removeUnit(unitFirst);
+		 return 2;
+	 }
+	 
+	// obie jednostki gina 
+	removeUnit(unitFirst);
+	removeUnit(unitSecond);
+	return 0;
 }
-
 
 /**
  * sprawdzamy czy chlop moze produkowac
@@ -334,7 +341,7 @@ static int produceUnit(int x1, int y1, int x2, int y2, enum unitType type) {
 	
 	UnitsList secondUnit = findUnit(x2, y2);
 	
-	// czy nie ma wlasnej jednostki na (x2, y2)
+	// czy nie ma innej jednostki na (x2, y2)
 	if(secondUnit != NULL) return 1;
 	
 	addUnit(x2, y2, type);
@@ -381,14 +388,19 @@ int move(int x1, int y1, int x2, int y2) {
 	unitFirst->y = y2;
 	unitFirst->lastMove = actualTurnNumber;
 	
+	// na pewno na polu jest jednostka pierwsza
+	int winner = 1;
+	
 	// jesli jest wroga jednostka to zaczynamy walke
-	if(unitSecond != NULL) 
-		walka(unitFirst, unitSecond);
+	if (unitSecond != NULL) 
+		winner = walka(unitFirst, unitSecond);
 		
 	if (x2 <= 10 && y2 <= 10) {
-		UnitsList unitKoniec = findUnit(x2, y2);
-		if (unitKoniec == NULL) topleft[x2][y2] = '.';
-		else topleft[x2][y2] = mark(unitKoniec->type, unitKoniec->player);
+		if (winner == 0) topleft[x2][y2] = '.';
+		else if (winner == 1)
+			topleft[x2][y2] = mark(unitFirst->type, unitFirst->player);
+		else 
+			topleft[x2][y2] = mark(unitSecond->type, unitSecond->player);
 	}
 	
 	return 0;
