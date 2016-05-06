@@ -1,31 +1,105 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "parse.h"
 #include "engine.h"
 
+int initsAmount = 0;
+
 int main() {
 
-    start_game();
-
-    command *new_command;
-    while (1) {
-        new_command = parse_command();
-
-        if (strcmp(new_command->name, "INIT") == 0) {
-            init(new_command->data[0],
-                 new_command->data[1],
-                 new_command->data[2],
-                 new_command->data[3],
-                 new_command->data[4],
-                 new_command->data[5],
-                 new_command->data[6]);
-        }
-
-        print_topleft();
-    }
-
-    end_game();
+    startGame();
+      
+	while(1) {
+    
+		Request command = getInput();
+		
+		// koniec wejscia	
+		if (command == NULL) 
+			break;	
+				
+		if (!czyPoprawneWejscie) {
+			endGame(0);
+			free(command);
+			return 42;
+		}
+		
+		// pierwsze dwie komendy to inity	
+		if (initsAmount < 2 && command->instruction != INIT) {
+			endGame(0);
+			free(command);
+			return 42;
+		}
+			
+		switch(command->instruction) {
+			case INIT : {
+				initsAmount++;
+				
+				if (init(command->boardSize, command->turnNumber, command->player,
+				command->x1, command->y1, command->x2, command->y2)) {
+					
+					endGame(0);
+					free(command);
+					return 42;
+				}
+				printTopleft();
+			}
+			break;
+				
+			case END_TURN :
+				endTurn();
+			break;
+				
+			case MOVE : 
+				if (move(command->x1, command->y1, command->x2, command->y2)) {
+					endGame(0);
+					free(command);
+					return 42;
+				}
+				printTopleft();
+			break;
+				
+			case PRODUCE_KNIGHT :
+				if (produceKnight(command->x1, command->y1, command->x2, command->y2)) {
+					endGame(0);
+					free(command);
+					return 42;
+				}
+				printTopleft();
+			break;
+				
+			case PRODUCE_PEASANT :
+				if (producePeasant(command->x1, command->y1, command->x2, command->y2)) {
+					endGame(0);
+					free(command);
+					return 42;
+				}
+				printTopleft();
+			break;
+			
+			// zle polecenie
+			case WRONG : 
+			{
+				endGame(0);
+				free(command);
+				return 42;
+			}
+		}
+		
+		// koniec gry (gra rozstrzygnieta)	
+		if (koniecGry()) {
+			endGame(1);
+			free(command);
+			return 0;
+		}
+			
+		free(command);
+		
+	}
+	
+	// koniec gry - (koniec tur)
+    endGame(1);
 
     return 0;
 }

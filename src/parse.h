@@ -2,19 +2,29 @@
     Interface of parser.
 
  */
-
 #ifndef PARSE_H
 #define PARSE_H
 
-typedef struct def_command {
-    char name[16];
-    int data[7];
-} command;
+enum Instruction {
+	INIT, MOVE, PRODUCE_KNIGHT, PRODUCE_PEASANT, END_TURN, WRONG	
+};
+
+struct Command {
+	enum Instruction instruction;
+	int boardSize;
+	int turnNumber;
+	int player;
+	int x1, y1, x2, y2;	
+};
+
+typedef struct Command* Request;
 
 
 /** Reads a command.
   Returns command with data points using 'command' structure.
   */
-command* parse_command();
+Request getInput();
+
+int czyPoprawneWejscie;
 
 #endif /* PARSE_H */

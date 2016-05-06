@@ -18,7 +18,6 @@ struct Unit {
 };
 
 // globalne Zmienne
-
 static int actualTurnNumber; // numer aktualnej tury
 static int gameTurnNumber; // liczba tur w calej grze
 static UnitsList globalUnitsList; // lista jednostek
@@ -27,7 +26,8 @@ static char topleft[11][11]; // lewy gorny rog
 static int globalBoardSize; // rozmiar planszy
 static int gameOver; // czygraskonczona
 static int kingOne, kingTwo; // czy zyje krol1/krol2
-
+static int liczbaInitow = 0; // ile initow juz bylo
+static int initialisedPlayer = -1; // numer gracza, ktory juz byl zainicjalizowany
 /**
  * czy koniec gry
  */
@@ -73,7 +73,6 @@ static int isEmptyList(UnitsList uniList) {
 	return uniList == NULL;
 }
 
-
 /**
  * tworzymy nowa jednostke, jesli sie nie da zwracamy NULL
  * zakladamy ze wspolrzedne sa poprawne
@@ -89,7 +88,7 @@ static UnitsList makeUnit(int x, int y, enum unitType type) {
 	
 	newUnit->x = x;
 	newUnit->y = y;
-	newUnit->lastMove = -3; // moze sie ruszyc od razu po utworzeniu
+	newUnit->lastMove = 0; // moze sie ruszyc od razu po utworzeniu
 	newUnit->player = actualPlayer;
 	newUnit->next = NULL;
 	newUnit->previous = NULL;
@@ -125,21 +124,15 @@ static UnitsList addUnit(int x, int y, enum unitType type) {
  * zwracamy NULL jesli takiej nie ma
  */
 static UnitsList findUnit(int x, int y) {
+
 	UnitsList uniList = globalUnitsList;
 	
 	while(!isEmptyList(uniList)) {
 		if(uniList->x == x && uniList->y == y) return uniList;
 		uniList = uniList->next;
 	}
-	
+		
 	return NULL;
-}
-
-/**
- * zwraca czy pole x1, y1 jest zajete
- */
-static int existUnit(int x, int y) {
-	return findUnit(x, y) != NULL;
 }
 
 /**
@@ -148,12 +141,15 @@ static int existUnit(int x, int y) {
  * usuwamy tez jesli trzeba z topleft
  */
 static void removeUnit(UnitsList uniList) {
+		
 	if(uniList->previous != NULL) uniList->previous->next = uniList->next;
 	if(uniList->next != NULL) uniList->next->previous = uniList->previous;
 	
+	if(uniList == globalUnitsList) globalUnitsList = uniList->next;
+	
 	int x = uniList->x;
 	int y = uniList->y;
-		
+			
 	// usuwamy z topleft jesli sie w nim miesci
 	if (x <= 10 && y <= 10)
 		topleft[x][y] = '.';
@@ -167,16 +163,6 @@ static void removeUnit(UnitsList uniList) {
 	}
 	
 	free(uniList);
-}
-
-/**
- * usuwamy jednostke z listy, wyszukujac ja po wspolrzednych
- * moze zbedne
- */
-static void removeUnitCoordinates(int x, int y) {
-	UnitsList uniList = findUnit(x, y);
-	
-	removeUnit(uniList);
 }
 
 /**
@@ -215,12 +201,18 @@ void startGame() {
 
 /**
  * czyszczenie pamieci, wypisanie wyniku gry
+ * czy zakonczylo sie poprawnie czy nie
  */
-void endGame() {
+void endGame(int poprawnie) { 
 	removeList(globalUnitsList);
-	if (kingOne == kingTwo) fprintf(stderr, "DRAW\n");
-	else if (kingOne > kingTwo) fprintf(stderr, "PLAYER 1 won\n");
-	else fprintf(stderr, "PLAYER 2 won\n");
+	if (poprawnie) {
+		if (kingOne == kingTwo) fprintf(stderr, "DRAW\n");
+		else if (kingOne > kingTwo) fprintf(stderr, "PLAYER 1 won\n");
+		else fprintf(stderr, "PLAYER 2 won\n");
+	}
+	else {
+		fprintf(stderr, "input error");
+	}
 }
 
 /**
@@ -242,18 +234,33 @@ void printTopleft() {
  * inicjalizujemy graczy
  * w przypadku bledu zwracamy 1
  */
-int init(int boardSize, int turnNumber, int player, int x1, int y1, int x2, int y2) { 
+int init(int boardSize, int turnNumber, int player, int x1, int y1, int x2, int y2) {
+	
+	// sprawdzamy ktory init z kolei
+	if (liczbaInitow > 1) return 1;
+	
+	// sprawdzamy czy rozny od poprzedniego
+	if (player == initialisedPlayer) return 1;
+	 
 	// oddalenie krolow co najmniej 8 w metryce maksimum
-	if( (x1 - x2) < 8 && (y1 - y2) < 8) return 1;
+	if (abs(x1 - x2) < 8 && abs(y1 - y2) < 8) return 1;
 	
-	// czy mozna stworzyc poczatkowe ustawienie
-	if(!insideBoard(x1, y1, globalBoardSize)) return 1;
-	if(!insideBoard(x1 + 3, y1, globalBoardSize)) return 1;
-	if(!insideBoard(x1, y2, globalBoardSize)) return 1;
-	if(!insideBoard(x1 + 3, y2, globalBoardSize)) return 1;
+	// rozmiar planszy
+	if (boardSize <= 8) return 1;
+	
+	// numer gracza
+	if (player != 1 && player != 2) return 1;
+	
+	// liczba tur
+	if (turnNumber < 1) return 1;
 
+	// czy mozna stworzyc poczatkowe ustawienie
+	if(!insideBoard(x1, y1, boardSize)) return 1;
+	if(!insideBoard(x1 + 3, y1, boardSize)) return 1;
+	if(!insideBoard(x2, y2, boardSize)) return 1;
+	if(!insideBoard(x2 + 3, y2, boardSize)) return 1;
 	
-	if (player == 1) {
+	if (liczbaInitow == 0) {
 		actualPlayer = 1;
 		globalBoardSize = boardSize;
 		gameTurnNumber = turnNumber;
@@ -265,14 +272,14 @@ int init(int boardSize, int turnNumber, int player, int x1, int y1, int x2, int 
 		
 		actualPlayer = 2;
 		
-		addUnit(x2, y1, KING);
+		addUnit(x2, y2, KING);
 		addUnit(x2 + 1, y2, PEASANT);
 		addUnit(x2 + 2, y2, KNIGHT);
 		addUnit(x2 + 3, y2, KNIGHT);
 
 	}
 	
-	if (player == 2) {
+	if (liczbaInitow == 1) {
 		if (globalBoardSize != boardSize) return 1;
 		if (gameTurnNumber != turnNumber) return 1;
 		
@@ -283,9 +290,12 @@ int init(int boardSize, int turnNumber, int player, int x1, int y1, int x2, int 
 		UnitsList king2 = findUnit(x2, y2);
 		if(king2 == NULL || king2->type != KING || king2->player != 2) return 1;
 		
+		actualPlayer = 1; // zaczynamy rozgrywke od gracza pierwszego
 	}
 	
-	printTopleft();	
+	liczbaInitow++;
+	initialisedPlayer = player;
+	
 	return 0;
 }
 
@@ -295,11 +305,11 @@ int init(int boardSize, int turnNumber, int player, int x1, int y1, int x2, int 
  */
 static void walka(UnitsList unitFirst, UnitsList unitSecond) {
 	if (unitFirst->priority > unitSecond->priority) removeUnit(unitSecond);
-		else if(unitFirst->priority < unitSecond->priority) removeUnit(unitFirst);
-		else {
-			removeUnit(unitFirst);
-			removeUnit(unitSecond);
-		}
+	else if(unitFirst->priority < unitSecond->priority) removeUnit(unitFirst);
+	else {
+		removeUnit(unitFirst);
+		removeUnit(unitSecond);
+	}
 }
 
 
@@ -325,18 +335,13 @@ static int produceUnit(int x1, int y1, int x2, int y2, enum unitType type) {
 	UnitsList secondUnit = findUnit(x2, y2);
 	
 	// czy nie ma wlasnej jednostki na (x2, y2)
-	if(secondUnit != NULL && secondUnit->player == actualPlayer) return 1;
+	if(secondUnit != NULL) return 1;
 	
-	UnitsList producedUnit = addUnit(x2, y2, type);
-	
-	// jesli na wroga jednostke to walka
-	if(secondUnit != NULL) 
-		walka(producedUnit, secondUnit);	
-	
+	addUnit(x2, y2, type);
+		
 	// aktualizujemy ostatni ruch chlopa
 	peasant->lastMove = actualTurnNumber;
 
-	printTopleft();
 	return 0;	
 }
 
@@ -351,20 +356,27 @@ int move(int x1, int y1, int x2, int y2) {
 	// czy wewnatrz planszy
 	if(!insideBoard(x1, y1, globalBoardSize)) return 1;
 	if(!insideBoard(x2, y2, globalBoardSize)) return 1;
-	
-	UnitsList unitSecond = findUnit(x2, y2);
+
 	UnitsList unitFirst = findUnit(x1, y1);
-	
+
 	// brak jednostki na polu pierwszym
 	if (unitFirst == NULL) return 1;
+	
+	// czy jednostka sie nie ruszala
+	if (unitFirst->lastMove == actualTurnNumber) return 1;
 	
 	// czy przesuwamy wlasna jednostke
 	if (unitFirst->player != actualPlayer) return 1;
 	
+	UnitsList unitSecond = findUnit(x2, y2);	
+	
 	// przesuwamy na wlasna jednostke
 	if(unitSecond != NULL && unitSecond->player == actualPlayer) return 1;
-	
+
 	// przesuwamy na wroga jednostke lub na wolne pole
+	if (x1 <= 10 && y1 <= 10) {
+		topleft[unitFirst->x][unitFirst->y] = '.';
+	}
 	unitFirst->x = x2;
 	unitFirst->y = y2;
 	unitFirst->lastMove = actualTurnNumber;
@@ -372,8 +384,13 @@ int move(int x1, int y1, int x2, int y2) {
 	// jesli jest wroga jednostka to zaczynamy walke
 	if(unitSecond != NULL) 
 		walka(unitFirst, unitSecond);
+		
+	if (x2 <= 10 && y2 <= 10) {
+		UnitsList unitKoniec = findUnit(x2, y2);
+		if (unitKoniec == NULL) topleft[x2][y2] = '.';
+		else topleft[x2][y2] = mark(unitKoniec->type, unitKoniec->player);
+	}
 	
-	printTopleft();
 	return 0;
 }
 
@@ -404,30 +421,5 @@ int endTurn() {
 	}
 	
 	if (actualTurnNumber > gameTurnNumber) gameOver = 1; 
-	return 0;
-}
-
-int main() {
-	
-	// dorobic testy
-	// przerzucic implementacje planszy do board.c
-	// czy topleft wewnatrz funkcji?
-	// czy raczej wyeksportowac, czy przy blednym poleceniu wypisac topleft 
-	// mimo wszystko?
-	// poprawic jakosc komentarzy
-	
-	globalBoardSize = 8;
-	startGame();
-		
-	addUnit(2, 3, KING);
-	
-	addUnit(1, 5, PEASANT);
-	printf("%d\n", existUnit(2, 3));
-	printf("%d\n", existUnit(1, 4));
-	removeUnitCoordinates(2, 3);
-	printf("%d\n", existUnit(2, 3));
-	
-	endGame();
-	
 	return 0;
 }

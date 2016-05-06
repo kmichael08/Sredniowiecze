@@ -12,9 +12,10 @@
 void startGame();
 
 /**
- * Frees memory. Needed after finishing game.
+ * Frees memory. Needed after finishing game. 
+ * Parametr czy program zakonczyl sie poprawnie
  */
-void endGame();
+void endGame(int poprawnie);
 
 /**
  * Initializes a game with size of a board, number of rounds and positions of kings.
