@@ -1,3 +1,8 @@
+/**
+ * @file Engine of the game.
+ * @author Michal Kuzba
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -203,12 +208,12 @@ void startGame() {
 void endGame(int correct) { 
 	removeList(globalUnitsList);
 	if (correct) {
-		if (kingOne == kingTwo) fprintf(stderr, "DRAW\n");
-		else if (kingOne > kingTwo) fprintf(stderr, "PLAYER 1 won\n");
-		else fprintf(stderr, "PLAYER 2 won\n");
+		if (kingOne == kingTwo) fprintf(stderr, "draw\n");
+		else if (kingOne > kingTwo) fprintf(stderr, "player 1 won\n");
+		else fprintf(stderr, "player 2 won\n");
 	}
 	else {
-		fprintf(stderr, "input error");
+		fprintf(stderr, "input error\n");
 	}
 }
 
@@ -405,7 +410,6 @@ int move(int x1, int y1, int x2, int y2) {
 	
 	return 0;
 }
-
 
 /**
  * produkujemy rycerza

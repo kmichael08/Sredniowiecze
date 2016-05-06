@@ -1,6 +1,6 @@
 /** @file
-    Interface of game engine.
-
+ *  Interface of game engine.
+ *  @author Michal Kuzba
  */
 
 #ifndef ENGINE_H

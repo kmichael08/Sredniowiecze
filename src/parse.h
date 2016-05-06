@@ -1,6 +1,6 @@
  /** @file
     Interface of parser.
-
+	 @author Michal Kuzba
  */
 #ifndef PARSE_H
 #define PARSE_H

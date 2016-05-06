@@ -1,3 +1,8 @@
+/**
+ * @file Main file.
+ * @author Michal Kuzba
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,8 +21,11 @@ int main() {
 		Request command = getInput();
 		
 		// koniec wejscia	
-		if (command == NULL) 
-			break;	
+		if (command == NULL) {
+			endGame(koniecGry());	
+			free(command);
+			return 42;
+		}
 				
 		if (!czyPoprawneWejscie) {
 			endGame(0);

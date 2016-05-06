@@ -1,3 +1,8 @@
+/**
+ * @file Parser.
+ * @author Michal Kuzba
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -29,7 +34,7 @@ static int cyfra(char c) {
 }
 
 /**
- * zwraca liczbe z ciagu znakow lub -1 jesli wystapil blad
+ * zwraca liczbe z ciagu znakow lub -1 jesli ujemne lub przekroczy int
  */
 static int numberOfString(char* str) {
 	int wynik = 0;
@@ -39,14 +44,12 @@ static int numberOfString(char* str) {
 	for (i = 0; i < strlen(str); i++) {
 		if (!isDigit(str[i]))
 			return -1;
-		 
 			
 		wynik *= 10;
 		wynik += cyfra(str[i]);
 		
-		if (wynik < 0)
-		return -1;
-
+		if (wynik <= 0)
+			return -1;
 	}
 	
 	return wynik;
@@ -54,7 +57,6 @@ static int numberOfString(char* str) {
 
 /**
  * zwraca polecenie ze stringa
- * czy polecenia beda poprawne skladniowo?
  */
 static enum Instruction getCommand(char *pol) {
 	if(strcmp(pol, "INIT") == 0) return INIT;
@@ -65,7 +67,7 @@ static enum Instruction getCommand(char *pol) {
 	return WRONG;
 }
 
-// indeks nastepnej spacji(znaku konca)
+// indeks nastepnej spacji (znaku konca)
 static int nextSpace(char *line, int begin) {
 	int iter = begin;
 	
@@ -90,13 +92,14 @@ static void getWord(char* line, char *word, int begin, int end) {
 
 /**
  * zwraca nastepna liczbe z linii od pozycji begin
+ * ustawia dalej wartosci begin, end
  */
 static int nextNumber(int* begin, int* end, char* line) {
 	*begin = *end + 1;
 	
 	*end = nextSpace(line, *begin);
 						
-	char *numberString = malloc(sizeof(char) *  (*end - *begin + 10)); // czemu tak duzo ??
+	char *numberString = malloc(sizeof(char) *  (*end - *begin + 4)); // czemu tak duzo ?? - jakies wredne spacje ogarnac
 			
 	getWord(line, numberString, *begin, *end);
 		
@@ -177,7 +180,7 @@ static Request readLine(char *line) {
 Request getInput() {
 	char* input = malloc(sizeof(char) * 102);
 	
-	char c = 'z';
+	char c = 'z'; // dowolna wartosc poczatkowa rozna od znaku konca linii
 	int i = 0;
 	
 	while (c != '\n') {
@@ -200,9 +203,7 @@ Request getInput() {
 		free(input);
 		return NULL;
 	}
-	
-	//printf("%s", input);
-	
+		
 	Request wynik = readLine(input);
 	
 	free(input);
