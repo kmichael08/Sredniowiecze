@@ -41,7 +41,7 @@ static int numberOfString(char* str) {
 	
 	int i = 0;
 	
-	for (i = 0; i < strlen(str); i++) {
+	while (str[i] != '\0') {
 		if (!isDigit(str[i]))
 			return -1;
 			
@@ -50,6 +50,7 @@ static int numberOfString(char* str) {
 		
 		if (wynik <= 0)
 			return -1;
+		i++;
 	}
 	
 	return wynik;
@@ -98,8 +99,8 @@ static int nextNumber(int* begin, int* end, char* line) {
 	*begin = *end + 1;
 	
 	*end = nextSpace(line, *begin);
-						
-	char *numberString = malloc(sizeof(char) *  (*end - *begin + 4)); // czemu tak duzo ?? - jakies wredne spacje ogarnac
+					
+	char *numberString = malloc(sizeof(char) *  (*end - *begin + 2)); 
 			
 	getWord(line, numberString, *begin, *end);
 		
