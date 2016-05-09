@@ -1,5 +1,5 @@
 /** @file
- *  Interface of game engine.
+ *  Interface of the game engine.
  *  @author Michal Kuzba
  */
 
@@ -7,13 +7,15 @@
 #define ENGINE_H
 
 /**
- * Initializes a game. Needed before first INIT.
+ * Initializes a game. 
+ * Needed before a first INIT.
  */
 void startGame();
 
 /**
- * Frees memory. Needed after finishing game. 
- * @param[in] correct Returns whether the program finished correctly.
+ * Ends the game.
+ * It frees the memory of the board. Needed after finishing game. 
+ * @param[in] correct - whether the game has finished correctly.
  */
 void endGame(int correct);
 
@@ -26,7 +28,7 @@ void endGame(int correct);
  * @param[in] y1 Row number of the first player king.
  * @param[in] x2 Column number of the second player king.
  * @param[in] y2 Row number of the second player king.
- * @return 0.
+ * @return 0 - if the command was correct, 1 - if not.
  */
 int init(int boardSize, int turnNumber, int player, int x1, int y1, int x2, int y2);
 
@@ -36,7 +38,7 @@ int init(int boardSize, int turnNumber, int player, int x1, int y1, int x2, int 
  * @param[in] y1 Row number before a move.
  * @param[in] x2 Column number after a move.
  * @param[in] y2 Row number before a move.
- * @return 0.
+ * @return 0 - if the command was correct, 1 - if not.
  */
 int move(int x1, int y1, int x2, int y2);
 
@@ -46,7 +48,7 @@ int move(int x1, int y1, int x2, int y2);
  * @param[in] y1 Row number of the peasant.
  * @param[in] x2 Column number of the new knight.
  * @param[in] y2 Row number of the new knight.
- * @return 0.
+ * @return 0 - if the command was correct, 1 - if not.
  */
 int produceKnight(int x1, int y1, int x2, int y2);
 
@@ -56,15 +58,14 @@ int produceKnight(int x1, int y1, int x2, int y2);
  * @param[in] y1 Row number of the peasant.
  * @param[in] x2 Column number of the new peasant.
  * @param[in] y2 Row number of the new peasant.
- * @return 0.
+ * @return 0 - if the command was correct, 1 - if not.
  */
 int producePeasant(int x1, int y1, int x2, int y2);
 
 /**
  * Ends the turn of the player.
- * @return 0.
  */
-int endTurn();
+void endTurn();
 
 /**
  * @return Is the game finished.

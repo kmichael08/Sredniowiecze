@@ -1,5 +1,8 @@
 /**
- * @file Engine of the game.
+ * @file engine.c
+ * Engine of the game.
+ * Implements the board and units.
+ * Implements the moves of the game.
  * @author Michal Kuzba
  */
 
@@ -12,27 +15,32 @@ enum unitType {
 	PEASANT, KING, KNIGHT
 };
 
+/**
+ * Units on the board.
+ */
 struct Unit {
-	enum unitType type; // typ jednostki
-	int priority; // 1 - peasant, 2 - king, 3 - knight, wedlug mocy w walce
-	int lastMove; // w ktorej kolejce ruszal sie po raz ostatni
-	int player; // numer gracza
-	int x, y; // wspolrzedne
-	UnitsList next;
-	UnitsList previous;
+	enum unitType type; /**< theType of the unit. */
+	int priority; 
+	/**< 1 - peasant, 2 - king, 3 - knight, power in the fight */
+	int lastMove; /**< Number of the last turn, the unit has moved. */
+	int player; /**< Number of the player - 1 or 2 */
+	int x; /**< Column number. */
+	int y; /**< Row number. */
+	UnitsList next; /**< Next unit on the units list. */
+	UnitsList previous; /**< Previous unit on the units list. */
 };
 
-// globalne Zmienne
-static int actualTurnNumber; // numer aktualnej tury
-static int gameTurnNumber; // liczba tur w calej grze
-static UnitsList globalUnitsList; // lista jednostek
-static int actualPlayer; // gracz aktualnie wykonujacy ruch
-static char topleft[11][11]; // lewy gorny rog
-static int globalBoardSize; // rozmiar planszy
-static int gameOver; // czygraskonczona
-static int kingOne, kingTwo; // czy zyje krol1/krol2
-static int liczbaInitow; // ile initow juz bylo
-static int initialisedPlayer = -1; // numer gracza, ktory juz byl zainicjalizowany
+// global variables
+static int actualTurnNumber; 
+static int gameTurnNumber; // Turn number in the whole game
+static UnitsList globalUnitsList; // structure - list of the all units
+static int actualPlayer;
+static char topleft[11][11]; // top-left corner of the board
+static int globalBoardSize; 
+static int gameOver;
+static int kingOne, kingTwo; // is king1/king2 alive
+static int liczbaInitow; // how many inits were so far.
+static int initialisedPlayer = -1; // number of the already initilised player
 
 /**
  * czy koniec gry
@@ -93,7 +101,7 @@ static UnitsList makeUnit(int x, int y, enum unitType type) {
 	
 	newUnit->x = x;
 	newUnit->y = y;
-	newUnit->lastMove = 0; // moze sie ruszyc od razu po utworzeniu
+	newUnit->lastMove = 0; // Unit can move from the very beginning.
 	newUnit->player = actualPlayer;
 	newUnit->next = NULL;
 	newUnit->previous = NULL;
@@ -117,7 +125,7 @@ static UnitsList addUnit(int x, int y, enum unitType type) {
 		globalUnitsList = newUnit;
 	}
 	
-	// dodajemy do topleft jesli sie zmiesci
+	// adding to the topleft if it should be there.
 	if (x <= 10 && y <= 10)
 		topleft[x][y] = mark(type, actualPlayer);
 	
@@ -152,11 +160,11 @@ static void removeUnit(UnitsList uniList) {
 	
 	if(uniList == globalUnitsList) globalUnitsList = uniList->next;
 			
-	// usuwamy z topleft jesli sie w nim miesci
+	// remove from topleft if it is there.
 	if (uniList->x <= 10 && uniList->y <= 10)
 		topleft[uniList->x][uniList->y] = '.';
 	
-	// jesli usuwamy krola to koniec gry
+	// removing the king ends the game.
 	if(uniList->type == KING) {
 		if(uniList->player == 1) kingOne = 0;
 		else kingTwo = 0;
@@ -429,7 +437,7 @@ int producePeasant(int x1, int y1, int x2, int y2) {
  * koniec rundy - zmieniamy gracza
  * zwiekszamy licznik rundy i sprawdzamy czy nie ma konca gry
  */
-int endTurn() {
+void endTurn() {
 	if (actualPlayer == 1) actualPlayer = 2;
 	else {
 		actualTurnNumber++;
@@ -437,5 +445,4 @@ int endTurn() {
 	}
 	
 	if (actualTurnNumber > gameTurnNumber) gameOver = 1; 
-	return 0;
 }

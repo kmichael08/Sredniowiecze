@@ -1,5 +1,6 @@
 /**
- * @file Main file.
+ * @file 
+ * Main file.
  * @author Michal Kuzba
  */
 
@@ -20,7 +21,7 @@ int main() {
     
 		Request command = getInput();
 		
-		// koniec wejscia	
+		// End of the input.	
 		if (command == NULL) {
 			endGame(koniecGry());	
 			free(command);
@@ -33,7 +34,7 @@ int main() {
 			return 42;
 		}
 		
-		// pierwsze dwie komendy to inity	
+		// First two commands needs to be inits.	
 		if (initsAmount < 2 && command->instruction != INIT) {
 			endGame(0);
 			free(command);
@@ -86,7 +87,7 @@ int main() {
 				printTopleft();
 			break;
 			
-			// zle polecenie
+			// Wrong command.
 			case WRONG : 
 			{
 				endGame(0);
@@ -95,7 +96,7 @@ int main() {
 			}
 		}
 		
-		// koniec gry (gra rozstrzygnieta)	
+		// Game over with a result.
 		if (koniecGry()) {
 			endGame(1);
 			free(command);
@@ -106,7 +107,7 @@ int main() {
 		
 	}
 	
-	// koniec gry - (koniec tur)
+	// End of the game - end of the turns.
     endGame(1);
 
     return 0;

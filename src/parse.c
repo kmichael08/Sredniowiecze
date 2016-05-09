@@ -1,5 +1,6 @@
 /**
- * @file Parser.
+ * @file 
+ * Parser.
  * @author Michal Kuzba
  */
 

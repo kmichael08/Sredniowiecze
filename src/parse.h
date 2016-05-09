@@ -1,6 +1,6 @@
  /** @file
-    Interface of parser.
-	 @author Michal Kuzba
+     Interface of parser.
+     @author Michal Kuzba
  */
 #ifndef PARSE_H
 #define PARSE_H
@@ -9,7 +9,14 @@
  * Type of the instruction.
  */
 enum Instruction {
-	INIT, MOVE, PRODUCE_KNIGHT, PRODUCE_PEASANT, END_TURN, WRONG	
+	INIT, /**< Player inits the game. */
+	MOVE, /**< Moves the unit to the neighbouring field. */
+	PRODUCE_KNIGHT, 
+	/**< Peasant produces a new knight on the neighbouring field. */
+	PRODUCE_PEASANT, 
+	/**< Peasant produces a new peasant on the nighbouring field. */
+	END_TURN, /**< Ends the turn of the player. */
+	WRONG /**< Wrong command - any other from listed above. */	
 };
 
 /**
@@ -17,22 +24,25 @@ enum Instruction {
  * Instruction with all parametres.
  */
 struct Command {
-	enum Instruction instruction;
-	int boardSize;
-	int turnNumber;
-	int player;
-	int x1, y1, x2, y2;	
+	enum Instruction instruction; /**< Type of the instruction. */
+	int boardSize; /**< Size of the board. */
+	int turnNumber; /**< The number of the turns in the whole game. */
+	int player; /**< Number of the player - 1 or 2. */
+	int x1; /**< Column number - actual position. */
+	int y1; /**< Row number - actual position. */
+	int x2;	/**< Column number - final position. */
+	int y2;	/**< Row number - final position. */
 };
 
 /**
- * Pointer to Command.
+ * Pointer to a Command.
  */
 typedef struct Command* Request;
 
 
 /** 
  * Reads a command from the input line.
- * @return command.
+ * @return command with all parameteres.
  */
 Request getInput();
 
