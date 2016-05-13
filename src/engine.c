@@ -43,7 +43,7 @@ static int liczbaInitow; // how many inits were so far.
 static int initialisedPlayer = -1; // number of the already initilised player
 
 /**
- * czy koniec gry
+ * is the game over
  */
 int koniecGry() {
 	return gameOver;
@@ -55,14 +55,14 @@ static int min(int a, int b) {
 }
 
 /**
- * czy punkt wewnatrz planszy 
+ * is the point inside the board 
  */
 static int insideBoard(int x, int y, int boardSize) {
 	return x >= 1 && y >= 1 && x <= boardSize && y <= boardSize;
 }
 
 /**
- * zwraca znak jednostki 
+ * returns the mark assigned to the type of the unit 
  */
 static char mark(enum unitType unit, int playerNumber) {
 	switch(unit) {
@@ -80,15 +80,15 @@ static char mark(enum unitType unit, int playerNumber) {
 }
 
 /**
- * czy lista jest pusta
+ * is the list empty
  */
 static int isEmptyList(UnitsList uniList) {
 	return uniList == NULL;
 }
 
 /**
- * tworzymy i zwracamy nowa jednostke, jesli sie nie da zwracamy NULL
- * zakladamy ze wspolrzedne sa poprawne
+ * creates and returning a new unit or returning NULL if it is not possible
+ * assumes coordinates are correct
  */
 static UnitsList makeUnit(int x, int y, enum unitType type) {
 	
@@ -110,10 +110,10 @@ static UnitsList makeUnit(int x, int y, enum unitType type) {
 }
 
 /**
- * dodajemy jednostke na liste
- * dodajemy tez na lewy gorny rog jesli mozna
- * zakladamy z gory ze wspolrzedne poprawne
- * zwracamy ta jednostke
+ * adds a unit to the list
+ * adds to the topleft if applicable
+ * assumes coordinates are correct
+ * returns the unit
  */
 static UnitsList addUnit(int x, int y, enum unitType type) {
 	UnitsList newUnit = makeUnit(x, y, type);
@@ -133,8 +133,8 @@ static UnitsList addUnit(int x, int y, enum unitType type) {
 }
 
 /**
- * zwracamy wskaznik do jednostki na podanych wspolrzednych
- * zwracamy NULL jesli takiej nie ma
+ * returns the pointer to the unit on the given coordinates
+ * returns NULL if there is no unit there
  */
 static UnitsList findUnit(int x, int y) {
 
@@ -149,9 +149,9 @@ static UnitsList findUnit(int x, int y) {
 }
 
 /**
- * usuwamy jednostke z listy
- * jesli usuwamy krola to konczymy gre
- * usuwamy tez jesli trzeba z topleft
+ * removes the unit from the list
+ * if the king is removed sets the game over is true
+ * removes from topleft if applicable
  */
 static void removeUnit(UnitsList uniList) {
 		
@@ -160,7 +160,7 @@ static void removeUnit(UnitsList uniList) {
 	
 	if(uniList == globalUnitsList) globalUnitsList = uniList->next;
 			
-	// remove from topleft if it is there.
+	// removes from topleft if it is there.
 	if (uniList->x <= 10 && uniList->y <= 10)
 		topleft[uniList->x][uniList->y] = '.';
 	
@@ -176,7 +176,7 @@ static void removeUnit(UnitsList uniList) {
 }
 
 /**
- * rekurencyjne usuwanie listy
+ * recursive list removing
  */
 static void removeList(UnitsList uniList) {
 	if(isEmptyList(uniList)) return;
@@ -186,14 +186,14 @@ static void removeList(UnitsList uniList) {
 }
 
 /**
- * czy punkty sasiaduja ze soba
+ * are the points neighbouring
  */
 static int isNeighbour(int x1, int y1, int x2, int y2) {
 	return abs(x1 - x2) <= 1 && abs(y1 - y2) <= 1;
 }
 
 /**
- * inicjalizacja gry
+ * game initialization
  */
 void startGame() {
 	gameOver = 0;
@@ -210,8 +210,8 @@ void startGame() {
 }
 
 /**
- * czyszczenie pamieci, wypisanie wyniku gry
- * czy zakonczylo sie poprawnie czy nie
+ * memory cleaning, printing the game result
+ * parameter - was the game finished correctly or not
  */
 void endGame(int correct) { 
 	removeList(globalUnitsList);
@@ -226,7 +226,7 @@ void endGame(int correct) {
 }
 
 /**
- * wypisuje lewy gorny rog tablicy (rozmiaru 10 X 10 lub mniej jesli mniejszy)
+ * prints the topleft corner of the array (10 X 10 or smaller)
  */
 void printTopleft() {
 	int i, j;
@@ -241,7 +241,7 @@ void printTopleft() {
 }
 
 /**
- * Rozstawiamy jednostki na poczatkowych pozycjach.
+ * Placing units on the initial positions
  */
 static void firstDistribution (int x, int y) {
 		addUnit(x, y, KING) ;
@@ -251,30 +251,30 @@ static void firstDistribution (int x, int y) {
 }
 
 /**
- * inicjalizujemy graczy
- * w przypadku bledu zwracamy 1
+ * Players initialization
+ * returns 1 in case of error
  */
 int init(int boardSize, int turnNumber, int player, int x1, int y1, int x2, int y2) {
 	
-	// sprawdzamy ktory init z kolei
+	// checking which init is it
 	if (liczbaInitow > 1) return 1;
 	
-	// sprawdzamy czy rozny od poprzedniego
+	// is the player different from previous one
 	if (player == initialisedPlayer) return 1;
 	 
-	// oddalenie krolow co najmniej 8 w metryce maksimum
+	// distatnce between kings in the maximum norm at least 8
 	if (abs(x1 - x2) < 8 && abs(y1 - y2) < 8) return 1;
 	
-	// rozmiar planszy
+	// board size > 8
 	if (boardSize <= 8) return 1;
 	
-	// numer gracza
+	// player number 1 or 2
 	if (player != 1 && player != 2) return 1;
 	
-	// liczba tur
+	// turn number positive
 	if (turnNumber < 1) return 1;
 
-	// czy mozna stworzyc poczatkowe ustawienie
+	// are the initial positions correct
 	if(!insideBoard(x1, y1, boardSize)) return 1;
 	if(!insideBoard(x1 + 3, y1, boardSize)) return 1;
 	if(!insideBoard(x2, y2, boardSize)) return 1;
@@ -295,14 +295,14 @@ int init(int boardSize, int turnNumber, int player, int x1, int y1, int x2, int 
 		if (globalBoardSize != boardSize) return 1;
 		if (gameTurnNumber != turnNumber) return 1;
 		
-		// czy zgadza sie z poprzednim initem
+		// is it the same as in previous init
 		UnitsList king1 = findUnit(x1, y1);
 		if(king1 == NULL || king1->type != KING || king1->player != 1) return 1;
 		
 		UnitsList king2 = findUnit(x2, y2);
 		if(king2 == NULL || king2->type != KING || king2->player != 2) return 1;
 		
-		actualPlayer = 1; // zaczynamy rozgrywke od gracza pierwszego
+		actualPlayer = 1; // first player starts the game
 	}
 	
 	liczbaInitow++;
@@ -312,9 +312,9 @@ int init(int boardSize, int turnNumber, int player, int x1, int y1, int x2, int 
 }
 
 /**
- * walka miedzy jednostkami
- * w zalozeniu sa na tym samym polu i istnieja
- * zwraca 0 - remis, 1 - wygral pierwszy, 2 - wygral drugi
+ * fight between units
+ * assumes that they are on the same field 
+ * returns : 0 - draw, 1 - first won, 2 - second won
  */
 static int walka(UnitsList unitFirst, UnitsList unitSecond) {
 	if (unitFirst->priority > unitSecond->priority)  {
@@ -327,73 +327,74 @@ static int walka(UnitsList unitFirst, UnitsList unitSecond) {
 		 return 2;
 	 }
 	 
-	// obie jednostki gina 
+	// both units die 
 	removeUnit(unitFirst);
 	removeUnit(unitSecond);
 	return 0;
 }
 
 /**
- * sprawdzamy czy chlop moze produkowac
- * produkuje jednostke i zwraca 1 jesli nie moze i zero jesli tak 
+ * checks if the peasant can produce
+ * produce the unit and returns 0 if succesful and 1 if not
+ * checks if the peasant can produce
  */
 static int produceUnit(int x1, int y1, int x2, int y2, enum unitType type) {
-	// tworzymy tylko na sasiednim
+	// only on the neighbouring field
 	if(!isNeighbour(x1, y1, x2, y2)) return 1;
 	
-	// czy wewnatrz planszy
+	// is it inside the board
 	if(!insideBoard(x1, y1, globalBoardSize)) return 1;
 	if(!insideBoard(x2, y2, globalBoardSize)) return 1;
 	
-	// nie ma jednostki lub nie jest chlopem na (x1, y1)
+	// no unit or it is not a peasant on (x1, y1)
 	UnitsList peasant = findUnit(x1, y1);
 	if (peasant == NULL || peasant->type != PEASANT) return 1;
 	
-	// czy stal ostatnie dwie kolejki
+	// has the unit moved last two turns
 	if (actualTurnNumber - peasant->lastMove < 3) return 1;
 	
 	UnitsList secondUnit = findUnit(x2, y2);
 	
-	// czy nie ma innej jednostki na (x2, y2)
+	// is there any other unit on (x2, y2)
 	if(secondUnit != NULL) return 1;
 	
 	addUnit(x2, y2, type);
 		
-	// aktualizujemy ostatni ruch chlopa
+	// updates the last move of the peasant
 	peasant->lastMove = actualTurnNumber;
 
 	return 0;	
 }
 
 /**
- * przenosi jednostke i zwraca 0
- * jesli nie moze zwraca 1
+ * moves the unit and returns 0
+ * returns 1 if not possible
  */
 int move(int x1, int y1, int x2, int y2) {
-	// przesuwamy tylko na sasiednie
+	// moves only to the neighbouring
 	if(!isNeighbour(x1, y1, x2, y2)) return 1;
 	
-	// czy wewnatrz planszy
+	// inside board
 	if(!insideBoard(x1, y1, globalBoardSize)) return 1;
 	if(!insideBoard(x2, y2, globalBoardSize)) return 1;
 
 	UnitsList unitFirst = findUnit(x1, y1);
 
-	// brak jednostki na polu pierwszym
+	// first unit does not exist
 	if (unitFirst == NULL) return 1;
 	
-	// czy jednostka sie nie ruszala
+	// has the unit moved already
 	if (unitFirst->lastMove == actualTurnNumber) return 1;
 	
-	// czy przesuwamy wlasna jednostke
+	// does the player move his own unit
 	if (unitFirst->player != actualPlayer) return 1;
 	
 	UnitsList unitSecond = findUnit(x2, y2);	
 	
-	// przesuwamy na wlasna jednostke
+	// moving onto the own unit
 	if(unitSecond != NULL && unitSecond->player == actualPlayer) return 1;
 
-	// przesuwamy na wroga jednostke lub na wolne pole
+	// moving on the enemy unit or the empty field
 	if (x1 <= 10 && y1 <= 10) {
 		topleft[unitFirst->x][unitFirst->y] = '.';
 	}
@@ -401,10 +402,10 @@ int move(int x1, int y1, int x2, int y2) {
 	unitFirst->y = y2;
 	unitFirst->lastMove = actualTurnNumber;
 	
-	// na pewno na polu jest jednostka pierwsza
+	// unit first is on the field for sure
 	int winner = 1;
 	
-	// jesli jest wroga jednostka to zaczynamy walke
+	// starts the fight if there is an enemy unit
 	if (unitSecond != NULL) 
 		winner = walka(unitFirst, unitSecond);
 		
@@ -420,22 +421,22 @@ int move(int x1, int y1, int x2, int y2) {
 }
 
 /**
- * produkujemy rycerza
+ * produces the new knight
  */
 int produceKnight(int x1, int y1, int x2, int y2) {
 	return produceUnit(x1, y1, x2, y2, KNIGHT);
 }
 
 /**
- * produkujemy chlopa
+ * produces the new peasant
  */
 int producePeasant(int x1, int y1, int x2, int y2) {
 	return produceUnit(x1, y1, x2, y2, PEASANT);
 }
 
 /**
- * koniec rundy - zmieniamy gracza
- * zwiekszamy licznik rundy i sprawdzamy czy nie ma konca gry
+ * end of the tund - changing the actual player
+ * increasas the turn number and checks whether the game is over
  */
 void endTurn() {
 	if (actualPlayer == 1) actualPlayer = 2;

@@ -24,7 +24,10 @@ struct Command {
 
 typedef struct Command* Request;
 
-int czyPoprawneWejscie; // czy polecenie bylo poprawne 
+/**
+ * is the command correct 
+ */
+int czyPoprawneWejscie; 
 
 static int isDigit(char c) {
 	return (c >= '0' && c <= '9');	
@@ -35,10 +38,10 @@ static int cyfra(char c) {
 }
 
 /**
- * zwraca liczbe z ciagu znakow lub -1 jesli ujemne lub przekroczy int
+ * returns the number from the string ot -1 if negative or int overflow
  */
 static int numberOfString(char* str) {
-	int wynik = 0;
+	int result = 0;
 	
 	int i = 0;
 	
@@ -46,19 +49,19 @@ static int numberOfString(char* str) {
 		if (!isDigit(str[i]))
 			return -1;
 			
-		wynik *= 10;
-		wynik += cyfra(str[i]);
+		result *= 10;
+		result += cyfra(str[i]);
 		
-		if (wynik <= 0)
+		if (result <= 0)
 			return -1;
 		i++;
 	}
 	
-	return wynik;
+	return result;
 }
 
 /**
- * zwraca polecenie ze stringa
+ * returns the command from the string
  */
 static enum Instruction getCommand(char *pol) {
 	if(strcmp(pol, "INIT") == 0) return INIT;
@@ -69,7 +72,9 @@ static enum Instruction getCommand(char *pol) {
 	return WRONG;
 }
 
-// indeks nastepnej spacji (znaku konca)
+/**
+ * index of the next space or end sign
+ */
 static int nextSpace(char *line, int begin) {
 	int iter = begin;
 	
@@ -80,7 +85,10 @@ static int nextSpace(char *line, int begin) {
 	return iter;
 }
 
-// do word zapisujemy fragment napisu line w zakresie [begin, end)
+/**
+ * writting the fragment of the string line in range [begin, end) 
+ * to the variable word
+ */
 static void getWord(char* line, char *word, int begin, int end) {
 	
 	int i = 0;
@@ -93,8 +101,8 @@ static void getWord(char* line, char *word, int begin, int end) {
 }
 
 /**
- * zwraca nastepna liczbe z linii od pozycji begin
- * ustawia dalej wartosci begin, end
+ * returns the next number from the line, beginning from variable begin
+ * sets begin and end
  */
 static int nextNumber(int* begin, int* end, char* line) {
 	*begin = *end + 1;
@@ -116,7 +124,7 @@ static int nextNumber(int* begin, int* end, char* line) {
 }
 
 /**
- * wczytywanie do structa
+ * reading into struct
  */
 static Request readLine(char *line) {
 	
@@ -127,7 +135,7 @@ static Request readLine(char *line) {
 	
 	Request actualCommand = malloc(sizeof(struct Command));
 			
-	// wyluskujemy polecenie
+	// getting the command
 	end = nextSpace(line, 0);
 	
 	char *word = malloc(sizeof(char) * (end + 2)); 
@@ -142,7 +150,7 @@ static Request readLine(char *line) {
 			
 		case INIT :
 		{	
-			// przepisujemy liczbe ze stringa na inta
+			// writting the number from string into int
 			actualCommand->boardSize = nextNumber(&begin, &end, line);
 			actualCommand->turnNumber = nextNumber(&begin, &end, line);
 			actualCommand->player = nextNumber(&begin, &end, line);
@@ -165,7 +173,7 @@ static Request readLine(char *line) {
 		}
 		break;
 		
-		// polecenia PRODUCE_KNIGHT, PRODUCE_PEASANT, MOVE obslugujemy tak samo
+		// commands PRODUCE_KNIGHT, PRODUCE_PEASANT, MOVE are read identically
 		default : {
 			actualCommand->x1 = nextNumber(&begin, &end, line);
 			actualCommand->y1 = nextNumber(&begin, &end, line);
@@ -182,7 +190,7 @@ static Request readLine(char *line) {
 Request getInput() {
 	char* input = malloc(sizeof(char) * 102);
 	
-	char c = 'z'; // dowolna wartosc poczatkowa rozna od znaku konca linii
+	char c = 'z'; // any start value different from end of line
 	int i = 0;
 	
 	while (c != '\n') {
@@ -193,7 +201,7 @@ Request getInput() {
 				return NULL;
 			}
 			
-			// wczytujemy pierwszych 100 znakow do tablicy
+			// reading to the array only first 100 chars
 			if (i < 100) {
 				input[i] = c;
 				input[i + 1] = '\0';

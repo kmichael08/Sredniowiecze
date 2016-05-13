@@ -10,11 +10,11 @@
  */
 enum Instruction {
 	INIT, /**< Player inits the game. */
-	MOVE, /**< Moves the unit to the neighbouring field. */
+	MOVE, /**< Moves the unit to the adjacent field. */
 	PRODUCE_KNIGHT, 
-	/**< Peasant produces a new knight on the neighbouring field. */
+	/**< Peasant produces a new knight on the adjacent field. */
 	PRODUCE_PEASANT, 
-	/**< Peasant produces a new peasant on the nighbouring field. */
+	/**< Peasant produces a new peasant on the adjacent field. */
 	END_TURN, /**< Ends the turn of the player. */
 	WRONG /**< Wrong command - any other from listed above. */	
 };
