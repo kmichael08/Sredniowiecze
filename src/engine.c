@@ -34,13 +34,12 @@ struct Unit {
 static int actualTurnNumber; 
 static int gameTurnNumber; // Turn number in the whole game
 static UnitsList globalUnitsList; // structure - list of the all units
-static int actualPlayer;
+int actualPlayer;
 static char topleft[11][11]; // top-left corner of the board
 static int globalBoardSize; 
 static int gameOver;
 static int kingOne, kingTwo; // is king1/king2 alive
 static int liczbaInitow; // how many inits were so far.
-static int initialisedPlayer = -1; // number of the already initilised player
 
 /**
  * is the game over
@@ -257,11 +256,8 @@ static void firstDistribution (int x, int y) {
 int init(int boardSize, int turnNumber, int player, int x1, int y1, int x2, int y2) {
 	
 	// checking which init is it
-	if (liczbaInitow > 1) return 1;
-	
-	// is the player different from previous one
-	if (player == initialisedPlayer) return 1;
-	 
+	if (liczbaInitow > 0) return 1;
+		 
 	// distatnce between kings in the maximum norm at least 8
 	if (abs(x1 - x2) < 8 && abs(y1 - y2) < 8) return 1;
 	
@@ -280,33 +276,19 @@ int init(int boardSize, int turnNumber, int player, int x1, int y1, int x2, int 
 	if(!insideBoard(x2, y2, boardSize)) return 1;
 	if(!insideBoard(x2 + 3, y2, boardSize)) return 1;
 	
-	if (liczbaInitow == 0) {
-		globalBoardSize = boardSize;
-		gameTurnNumber = turnNumber;
 	
-		actualPlayer = 1;	
-		firstDistribution(x1, y1);
-		
-		actualPlayer = 2;
-		firstDistribution(x2, y2);
-	}
+	globalBoardSize = boardSize;
+	gameTurnNumber = turnNumber;
 	
-	if (liczbaInitow == 1) {
-		if (globalBoardSize != boardSize) return 1;
-		if (gameTurnNumber != turnNumber) return 1;
+	actualPlayer = 1;	
+	firstDistribution(x1, y1);
 		
-		// is it the same as in previous init
-		UnitsList king1 = findUnit(x1, y1);
-		if(king1 == NULL || king1->type != KING || king1->player != 1) return 1;
-		
-		UnitsList king2 = findUnit(x2, y2);
-		if(king2 == NULL || king2->type != KING || king2->player != 2) return 1;
-		
-		actualPlayer = 1; // first player starts the game
-	}
+	actualPlayer = 2;
+	firstDistribution(x2, y2);
+	
+	actualPlayer = 1;
 	
 	liczbaInitow++;
-	initialisedPlayer = player;
 	
 	return 0;
 }
@@ -435,8 +417,8 @@ int producePeasant(int x1, int y1, int x2, int y2) {
 }
 
 /**
- * end of the tund - changing the actual player
- * increasas the turn number and checks whether the game is over
+ * end of the turn - changing the actual player
+ * increases the turn number and checks whether the game is over
  */
 void endTurn() {
 	if (actualPlayer == 1) actualPlayer = 2;

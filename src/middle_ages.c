@@ -14,7 +14,7 @@
 #define GAME_FINISHED_CORRECTLY { endGame(1); free(command); return 0; }
 #define GAME_FINISHED_INCORRECTLY {	endGame(0);	free(command); return 42; }
 
-int initsAmount = 0;
+int thisPlayer = 0;
 
 int main() {
 
@@ -23,7 +23,7 @@ int main() {
 	while(1) {
     
 		Request command = getInput();
-		
+				
 		// End of the input.	
 		if (command == NULL) {
 			if(koniecGry())
@@ -35,17 +35,20 @@ int main() {
 		if (!czyPoprawneWejscie) 
 			GAME_FINISHED_INCORRECTLY
 		
-		// First two commands needs to be inits.	
-		if (initsAmount < 2 && command->instruction != INIT) 
+		
+		// First command needs to be init.	
+		if (thisPlayer == 0 && command->instruction != INIT) 
 			GAME_FINISHED_INCORRECTLY
+		
 			
 		switch(command->instruction) {
 			case INIT : {
-				initsAmount++;
 				
 				if (init(command->boardSize, command->turnNumber, command->player,
 				command->x1, command->y1, command->x2, command->y2)) 
 					GAME_FINISHED_INCORRECTLY
+				else 
+					thisPlayer = command->player;
 					
 				printTopleft();
 			}
@@ -53,7 +56,7 @@ int main() {
 				
 			case END_TURN :
 				endTurn();
-			break;
+				break;
 				
 			case MOVE : 
 				if (move(command->x1, command->y1, command->x2, command->y2)) 
@@ -81,10 +84,17 @@ int main() {
 			break;
 		}
 		
+		
 		// Game over with a result.
 		if (koniecGry()) 
 			GAME_FINISHED_CORRECTLY
 			
+		// Move of this AI programme	
+		if (thisPlayer == actualPlayer) {
+			printf("END_TURN\n");
+			endTurn();
+		}
+		
 		free(command);
 		
 	}

@@ -73,6 +73,12 @@ void endTurn();
 int koniecGry();
 
 /**
+ * @return actual player number
+ */
+int actualPlayer;
+
+
+/**
  * Prints (into stdout) top-left corner of the board of size m x m where m = min(n, 10).
  */
 void printTopleft();
