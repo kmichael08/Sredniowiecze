@@ -72,6 +72,35 @@ losuj() {
 	return $[$1 + $[RANDOM % $roznica]]
 }
 
+isNumber() {
+	re='^[0-9]+$'
+	if [[ ($1 =~ $re) && ($2 =~ $re) && ($3 =~ $re) && ($4 =~ $re) && ($5 =~ $re) && ($6 =~ $re) && ($7 =~ $re) ]]
+		then 
+			return 1
+		else
+			return 0
+	fi
+}
+
+
+
+#sprawdzanie poprawnosci
+isNumber $x1 $y1 $x2 $y2 $boardSize $pauseTime $turnNumber
+if [[ $? == 0 ]] 
+	then 
+		echo "ERROR - not a number"
+		exit 1
+	fi
+
+if [[ ("$x1" -lt 0) || ("$y1" -lt 0) || ("$x2" -lt 0) || ("$y2" -lt 0) || ("$x1" -gt "$boardSize") || ("$x2" -gt "$boardSize") \
+|| ("$y1" -gt "$boardSize") || ("$y2" -gt "$boardSize") || ("$boardSize" < 0) || ("$pauseTime" < 0) || ("$turnNumber" < 0) ]]
+	then
+		echo "ERROR - WRONG INPUT"
+		exit 1;
+	fi
+
+
+
 #randomizing the positions if both not given on the input
 if [[ ($x1 == 0) && ($x2 == 0)]] 
 	then
@@ -104,42 +133,27 @@ if [[ $x2 == 0 ]]
 	then
 		x2=$x1
 		y2=$y1
-		x2=0
+		x1=0
 		y1=0
 	fi
 	
 if [[ $x1 == 0 ]]
 	then
-		losuj 1 2
-		if [[ $? == 1 ]]
+		if [[ ("$x2" -lt 9) && ("$y2" -lt 9) && ("$boardSize - $x2" -lt 8) && ("$boardSize - $y2" -lt 8) ]]
 			then
-				temp=$x2
-				x2=$y2
-				y2=$temp
-			fi
-		
-		#na x sie nie da
-		if [[ ($x1 < 10) && ($[$boardSize - $x1] < 8) ]]
-			then
-				losuj 1 $boardSize
-				x1=$?
-				
-				#poprawic - y z przedzialu
-				losuj 1 $boardSize
-				y1=$?
+				echo "ERROR - NOT ABLE TO RANDOMIZE"
+				exit 1
 			else
-				#da sie na x
-				if [[ $y1 < 10 && $[$boardSize - $y1] < 8 ]]; then echo "ERROR"; exit 1; fi
-				losuj 1 $boardSize
-				y1=$?
-				
-				#poprawic - x z przedzialu
-				losuj 1 $boardSize
-				x1=$?	
-			
-			fi
+				# mamy x1, y1 nieznane a x2, y2 znane
+				# wiemy ze mozna wylosowac
+				echo "NOT READY YET"
+		fi
 	fi
 
+
+
+
+#czesc odpowiedzialna za odpalanie skryptu
 # create a temporary named pipe
 PIPE=$(mktemp -u)
 #mkfifo $PIPE
@@ -164,6 +178,10 @@ if [[ ($ai1 == "") && ($ai2 == "") ]]
 			#kill $pid
 
 		fi
+
+
+
+
 	
 #parse result printing
 echo $boardSize
