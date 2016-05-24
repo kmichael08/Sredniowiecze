@@ -102,6 +102,7 @@ if [[ ("$x1" -lt 0) || ("$y1" -lt 0) || ("$x2" -lt 0) || ("$y2" -lt 0) || ("$x1"
 
 
 #randomizing the positions if both not given on the input
+#poprawic - musi dac sie krola i inne jednostki rozmiescic
 if [[ ($x1 == 0) && ($x2 == 0)]] 
 	then
 		losuj 1 $[$boardSize - 8]
@@ -150,36 +151,71 @@ if [[ $x1 == 0 ]]
 		fi
 	fi
 
+#tymczasowe
+x1=1
+y1=1
+x2=7
+y2=9
 
 
 
-#czesc odpowiedzialna za odpalanie skryptu
-# create a temporary named pipe
+# create a temporary named pipe - script input
 PIPE=$(mktemp -u)
-#mkfifo $PIPE
+mkfifo $PIPE
 # attach it to file descriptor 3
 exec 3<>$PIPE
 # unlink (delete) the named pipe
+rm $PIPE
+
+# create a temporary named pipe - script output
+PIPE=$(mktemp -u)
+mkfifo $PIPE
+# attach it to file descriptor 4
+exec 4<>$PIPE
+# unlink (delete) the named pipe
+rm $PIPE
+
+
+# create a temporary named pipe - ai input
+PIPE=$(mktemp -u)
+mkfifo $PIPE
+# attach it to file descriptor 5
+exec 5<>$PIPE
+# unlink (delete) the named pipe
+rm $PIPE
+
+# create a temporary named pipe - ai output
+PIPE=$(mktemp -u)
+mkfifo $PIPE
+# attach it to file descriptor 6
+exec 6<>$PIPE
+# unlink (delete) the named pipe
+rm $PIPE
 
 
 init1="INIT $boardSize $turnNumber 1 $x1 $y1 $x2 $y2"
 init2="INIT $boardSize $turnNumber 2 $x1 $y1 $x2 $y2"
 
-printf "$init1\n$init2\n" >&3
-
-
+#dwojka ludzi gra
 if [[ ($ai1 == "") && ($ai2 == "") ]]
 		then 
-			#moze wyrzucac do devnull
-			./sredniowiecze_gui_linux64_v1/sredniowiecze_gui_with_libs.sh -human1 -human2 <$PIPE 
-			#sleep 1
-			#pid=$!
-			#echo "Podprogram ma pid $pid"
-			#kill $pid
-
+			./sredniowiecze_gui_linux64_v1/sredniowiecze_gui_with_libs.sh -human1 -human2 <&3 > /dev/null &
+			printf "$init1\n$init2\n" >&3
+			#tu zakonczyc program jeszcze
 		fi
 
-
+#jeden czlowiek i jedno ai
+if [[ ($ai1 != "") && ($ai2 == "") ]]
+	then
+		./sredniowiecze_gui_linux64_v1/sredniowiecze_gui_with_libs.sh -human2 <&3 &
+		./release/middle_ages <&5 >&6 &
+		echo -e "$init1\n$init2\n" >&3
+		echo -e "$init1\n" >&5
+		echo -e "$init1\n"
+		read a <&6
+		#to powinien wypisac 6 deskryptor
+		echo $a >&3
+	fi
 
 
 	

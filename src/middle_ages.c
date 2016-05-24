@@ -50,7 +50,6 @@ int main() {
 				else 
 					thisPlayer = command->player;
 					
-				printTopleft();
 			}
 			break;
 				
@@ -62,20 +61,17 @@ int main() {
 				if (move(command->x1, command->y1, command->x2, command->y2)) 
 					GAME_FINISHED_INCORRECTLY
 					
-				printTopleft();
 			break;
 				
 			case PRODUCE_KNIGHT :
 				if (produceKnight(command->x1, command->y1, command->x2, command->y2)) 
 					GAME_FINISHED_INCORRECTLY
 					
-				printTopleft();
 			break;
 				
 			case PRODUCE_PEASANT :
 				if (producePeasant(command->x1, command->y1, command->x2, command->y2)) 
 					GAME_FINISHED_INCORRECTLY
-				printTopleft();
 			break;
 			
 			// Wrong command.
