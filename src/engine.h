@@ -77,6 +77,10 @@ int koniecGry();
  */
 int actualPlayer;
 
+/**
+ * @return the number of the winner or 0 in case of draw
+ */
+int winner;
 
 /**
  * Prints (into stdout) top-left corner of the board of size m x m where m = min(n, 10).

@@ -207,14 +207,23 @@ if [[ ($ai1 == "") && ($ai2 == "") ]]
 #jeden czlowiek i jedno ai
 if [[ ($ai1 != "") && ($ai2 == "") ]]
 	then
-		./sredniowiecze_gui_linux64_v1/sredniowiecze_gui_with_libs.sh -human2 <&3 &
+		./sredniowiecze_gui_linux64_v1/sredniowiecze_gui_with_libs.sh -human2 <&3 >&4 &
 		./release/middle_ages <&5 >&6 &
-		echo -e "$init1\n$init2\n" >&3
-		echo -e "$init1\n" >&5
-		echo -e "$init1\n"
-		read a <&6
-		#to powinien wypisac 6 deskryptor
-		echo $a >&3
+		echo -e "$init1\n$init2" >&3
+		echo -e "$init1" >&5
+		echo -e "$init1"
+		
+		while [[ 1 ]]
+		do
+			while [[ $a != "END_TURN" ]]
+				do
+					read a <&6
+					#to powinien wypisac 6 deskryptor
+					echo $a
+					#echo $a >&3
+				done
+			#teraz z 4 czyli wyjscia gui przesylamy do ai
+		done
 	fi
 
 

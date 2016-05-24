@@ -11,7 +11,7 @@
 #include "parse.h"
 #include "engine.h"
 
-#define GAME_FINISHED_CORRECTLY { endGame(1); free(command); return 0; }
+#define GAME_FINISHED_CORRECTLY { endGame(1); free(command); return winner; }
 #define GAME_FINISHED_INCORRECTLY {	endGame(0);	free(command); return 42; }
 
 int thisPlayer = 0;
@@ -88,6 +88,7 @@ int main() {
 		// Move of this AI programme	
 		if (thisPlayer == actualPlayer) {
 			printf("END_TURN\n");
+			fflush(stdout);
 			endTurn();
 		}
 		
@@ -95,8 +96,4 @@ int main() {
 		
 	}
 	
-	// End of the game - end of the turns.
-    endGame(1);
-
-    return 0;
 }

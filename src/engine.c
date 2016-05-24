@@ -40,7 +40,7 @@ static int globalBoardSize;
 static int gameOver;
 static int kingOne, kingTwo; // is king1/king2 alive
 static int liczbaInitow; // how many inits were so far.
-
+int winner = 0; //default 0 - draw, otherwise number of the winner
 /**
  * is the game over
  */
@@ -216,8 +216,14 @@ void endGame(int correct) {
 	removeList(globalUnitsList);
 	if (correct) {
 		if (kingOne == kingTwo) fprintf(stderr, "draw\n");
-		else if (kingOne > kingTwo) fprintf(stderr, "player 1 won\n");
-		else fprintf(stderr, "player 2 won\n");
+		else if (kingOne > kingTwo) {
+			 fprintf(stderr, "player 1 won\n");
+			 winner = 1;
+		 }
+		else {
+			fprintf(stderr, "player 2 won\n");
+			winner = 2;
+		}
 	}
 	else {
 		fprintf(stderr, "input error\n");
