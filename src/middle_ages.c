@@ -11,10 +11,11 @@
 #include "parse.h"
 #include "engine.h"
 
-#define GAME_FINISHED_CORRECTLY { endGame(1); free(command); return winner; }
+#define GAME_FINISHED_CORRECTLY { endGame(1); free(command); return returnedResult; }
 #define GAME_FINISHED_INCORRECTLY {	endGame(0);	free(command); return 42; }
 
 int thisPlayer = 0;
+int returnedResult = 1;
 
 int main() {
 
@@ -26,8 +27,12 @@ int main() {
 				
 		// End of the input.	
 		if (command == NULL) {
-			if(koniecGry())
+			if(koniecGry()) {
+				if (winner == 0) returnedResult = 1; // draw
+				else if (winner == thisPlayer) returnedResult = 0;
+				else returnedResult = 2;
 				GAME_FINISHED_CORRECTLY
+			}
 			else 
 				GAME_FINISHED_INCORRECTLY
 		}		
@@ -80,17 +85,22 @@ int main() {
 			break;
 		}
 		
-		
-		// Game over with a result.
-		if (koniecGry()) 
-			GAME_FINISHED_CORRECTLY
-			
 		// Move of this AI programme	
 		if (thisPlayer == actualPlayer) {
 			printf("END_TURN\n");
 			fflush(stdout);
 			endTurn();
 		}
+		
+		// Game over with a result.
+		if (koniecGry()) {
+			if (winner == 0) returnedResult = 1; // draw
+			else if (winner == thisPlayer) returnedResult = 0;
+			else returnedResult = 2;
+			GAME_FINISHED_CORRECTLY
+		}
+			
+		
 		
 		free(command);
 		

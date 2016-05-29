@@ -7,31 +7,32 @@ ai1=""
 ai2=""
 
 
-while [[ $# > 0 ]]
+while [[ $# -gt 0 ]]
 	do
 		flag="$1"
+		echo "$flag"
 
 		case $flag in
 			-n)
-				if [[ $# < 2 ]] 
+				if [[ $# -lt 2 ]] 
 					then exit 1; fi
 				boardSize="$2"
 				shift 
 				;;
 			-k)
-				if [[ $# < 2 ]]
+				if [[ $# -lt 2 ]]
 					then exit 1; fi
 				turnNumber="$2"
 				shift 
 				;;
 			-s)
-				if [[ $# < 2 ]] 
+				if [[ $# -lt 2 ]] 
 					then exit 1; fi
 				pauseTime="$2"
 				shift 
 				;;
 			-p1)
-				if [[ $# < 2 ]] 
+				if [[ $# -lt 2 ]] 
 					then exit 1; fi
 				input="$2"	
 				lista="$(echo $input | tr "," "\n")"	
@@ -43,10 +44,9 @@ while [[ $# > 0 ]]
 				x1=${tablica[0]}
 				y1=${tablica[1]}
 				shift
-				shift
 				;;
 			-p2)
-				if [[ $# < 2 ]] 
+				if [[ $# -lt 2 ]] 
 					then exit 1; fi
 				input="$2"	
 				lista="$(echo $input | tr "," "\n")"	
@@ -59,16 +59,15 @@ while [[ $# > 0 ]]
 				y2=${tablica[1]}
 				
 				shift
-				shift
 				;;
 			-ai1)
-				if [[ $# < 2 ]] 
+				if [[ $# -lt 2 ]] 
 					then exit 1; fi
 				ai1="$2"
 				shift
 				;;
 			-ai2)
-				if [[ $# < 2 ]] 
+				if [[ $# -lt 2 ]] 
 					then exit 1; fi
 				ai2="$2"
 				shift
@@ -226,11 +225,11 @@ rm $PIPE
 init1="INIT $boardSize $turnNumber 1 $x1 $y1 $x2 $y2"
 init2="INIT $boardSize $turnNumber 2 $x1 $y1 $x2 $y2"
 
-#human vs human
+# human vs human
 if [[ ($ai1 == "") && ($ai2 == "") ]]
 		then 
 			./sredniowiecze_gui_linux64_v1/sredniowiecze_gui_with_libs.sh -human1 -human2 <&3 > /dev/null &
-			pid=$!
+			pidGUI=$!
 			printf "$init1\n$init2\n" >&3
 			#TODO tu zakonczyc program jeszcze
 		fi
@@ -239,6 +238,7 @@ if [[ ($ai1 == "") && ($ai2 == "") ]]
 if [[ ($ai1 != "") && ($ai2 == "") ]]
 	then
 		./sredniowiecze_gui_linux64_v1/sredniowiecze_gui_with_libs.sh -human2 <&3 >&4 &
+		pidGUI=$!
 		./release/middle_ages <&5 >&6 &
 		pid=$!
 		echo -e "$init1\n$init2" >&3
@@ -259,6 +259,9 @@ if [[ ($ai1 != "") && ($ai2 == "") ]]
 					read a <&4
 					echo $a >&5
 				done
+			
+			#czy koniec	
+			if !(kill -0 $pid); then echo $?; kill $pidGUI; break; fi
 		done
 	fi
 
@@ -266,7 +269,10 @@ if [[ ($ai1 != "") && ($ai2 == "") ]]
 if [[ ($ai1 == "") && ($ai2 != "") ]]
 	then
 		./sredniowiecze_gui_linux64_v1/sredniowiecze_gui_with_libs.sh -human1 <&3 >&4 &
+		pidGUI=$!
 		./release/middle_ages <&5 >&6 &
+		pid=$!
+		
 		echo -e "$init1\n$init2" >&3
 		echo -e "$init2" >&5
 		echo -e "$init2"
@@ -286,7 +292,9 @@ if [[ ($ai1 == "") && ($ai2 != "") ]]
 					read a <&6
 					echo $a >&3
 				done
-			
+		
+			#czy koniec	
+			if !(kill -0 $pid); then kill $pidGUI; break; fi
 		done
 	fi
 
@@ -294,6 +302,7 @@ if [[ ($ai1 == "") && ($ai2 != "") ]]
 if [[ ($ai1 != "") && ($ai2 != "") ]]
 	then
 		./sredniowiecze_gui_linux64_v1/sredniowiecze_gui_with_libs.sh <&3 >&4 &
+		pidGUI=$!
 		./release/middle_ages <&5 >&6 &
 		pid1=$!
 		./release/middle_ages <&7 >&8 &
@@ -319,16 +328,18 @@ if [[ ($ai1 != "") && ($ai2 != "") ]]
 					echo $a >&5
 					echo $a >&3
 				done
-				
-			wait -n $pid1
-			if [[ $? == 1 ]]; then kill $pid1; fi
-			wait -n $pid2
-			if [[ $? == 1 ]]; then kill $pid2; fi
+			
 			sleep $pauseTime
+			
+			echo $pidGUI
+			
+			#czy koniec	
+			if !(kill -0 $pid1) || !(kill -0 $pid2); then kill $pidGUI; break; fi
+
 		done
 	fi
 	
-#parse result printing
+#TODELETE parse result printing
 echo $boardSize
 echo $turnNumber
 echo $pauseTime
