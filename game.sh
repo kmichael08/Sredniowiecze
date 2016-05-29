@@ -31,18 +31,33 @@ while [[ $# > 0 ]]
 				shift 
 				;;
 			-p1)
-				if [[ $# < 3 ]] 
+				if [[ $# < 2 ]] 
 					then exit 1; fi
-				x1="$2"
-				y1="$3"
+				input="$2"	
+				lista="$(echo $input | tr "," "\n")"	
+				i=0
+				for arg in $lista; do
+					tablica[$i]=$arg
+					i=$[$i+1]
+				done
+				x1=${tablica[0]}
+				y1=${tablica[1]}
 				shift
 				shift
 				;;
 			-p2)
-				if [[ $# < 3 ]] 
+				if [[ $# < 2 ]] 
 					then exit 1; fi
-				x2="$2"
-				y2="$3"
+				input="$2"	
+				lista="$(echo $input | tr "," "\n")"	
+				i=0
+				for arg in $lista; do
+					tablica[$i]=$arg
+					i=$[$i+1]
+				done
+				x2=${tablica[0]}
+				y2=${tablica[1]}
+				
 				shift
 				shift
 				;;
@@ -93,15 +108,15 @@ if [[ $? == 0 ]]
 	fi
 
 if [[ ("$x1" -lt 0) || ("$y1" -lt 0) || ("$x2" -lt 0) || ("$y2" -lt 0) || ("$x1" -gt "$boardSize") || ("$x2" -gt "$boardSize") \
-|| ("$y1" -gt "$boardSize") || ("$y2" -gt "$boardSize") || ("$boardSize" < 0) || ("$pauseTime" < 0) || ("$turnNumber" < 0) ]]
+|| ("$y1" -gt "$boardSize") || ("$y2" -gt "$boardSize") || ("$boardSize" -lt 9) || ("$pauseTime" -lt 0) || ("$turnNumber" -lt 1) ]]
 	then
 		echo "ERROR - WRONG INPUT"
 		exit 1;
 	fi
 
+#TODO - sprawdzanie poprawnosci sciezki AI
 
-
-#randomizing the positions if both not given on the input
+#TODO randomizing the positions if both not given on the input
 #poprawic - musi dac sie krola i inne jednostki rozmiescic
 if [[ ($x1 == 0) && ($x2 == 0)]] 
 	then
@@ -127,7 +142,7 @@ if [[ ($x1 == 0) && ($x2 == 0)]]
 			fi
 	fi
 	
-#randomizing the positions if one not given on the input	
+#TO DO randomizing the positions if one not given on the input	
 
 #one position not known (x1, y1)
 if [[ $x2 == 0 ]]
@@ -151,7 +166,7 @@ if [[ $x1 == 0 ]]
 		fi
 	fi
 
-#tymczasowe
+#TO DELETE - tymczasowe
 x1=1
 y1=1
 x2=7
@@ -192,41 +207,126 @@ exec 6<>$PIPE
 # unlink (delete) the named pipe
 rm $PIPE
 
+# create a temporary named pipe - ai output
+PIPE=$(mktemp -u)
+mkfifo $PIPE
+# attach it to file descriptor 7
+exec 7<>$PIPE
+# unlink (delete) the named pipe
+rm $PIPE
+
+# create a temporary named pipe - ai output
+PIPE=$(mktemp -u)
+mkfifo $PIPE
+# attach it to file descriptor 8
+exec 8<>$PIPE
+# unlink (delete) the named pipe
+rm $PIPE
 
 init1="INIT $boardSize $turnNumber 1 $x1 $y1 $x2 $y2"
 init2="INIT $boardSize $turnNumber 2 $x1 $y1 $x2 $y2"
 
-#dwojka ludzi gra
+#human vs human
 if [[ ($ai1 == "") && ($ai2 == "") ]]
 		then 
 			./sredniowiecze_gui_linux64_v1/sredniowiecze_gui_with_libs.sh -human1 -human2 <&3 > /dev/null &
+			pid=$!
 			printf "$init1\n$init2\n" >&3
-			#tu zakonczyc program jeszcze
+			#TODO tu zakonczyc program jeszcze
 		fi
 
-#jeden czlowiek i jedno ai
+# ai vs human
 if [[ ($ai1 != "") && ($ai2 == "") ]]
 	then
 		./sredniowiecze_gui_linux64_v1/sredniowiecze_gui_with_libs.sh -human2 <&3 >&4 &
 		./release/middle_ages <&5 >&6 &
+		pid=$!
 		echo -e "$init1\n$init2" >&3
 		echo -e "$init1" >&5
 		echo -e "$init1"
-		
+
 		while [[ 1 ]]
-		do
+		do	
+			a=""
 			while [[ $a != "END_TURN" ]]
 				do
 					read a <&6
-					#to powinien wypisac 6 deskryptor
-					echo $a
-					#echo $a >&3
+					echo $a >&3
 				done
-			#teraz z 4 czyli wyjscia gui przesylamy do ai
+			a=""
+			while [[ $a != "END_TURN" ]]
+				do
+					read a <&4
+					echo $a >&5
+				done
 		done
 	fi
 
+# human vs ai
+if [[ ($ai1 == "") && ($ai2 != "") ]]
+	then
+		./sredniowiecze_gui_linux64_v1/sredniowiecze_gui_with_libs.sh -human1 <&3 >&4 &
+		./release/middle_ages <&5 >&6 &
+		echo -e "$init1\n$init2" >&3
+		echo -e "$init2" >&5
+		echo -e "$init2"
 
+		while [[ 1 ]]
+		do	
+			a=""
+			while [[ $a != "END_TURN" ]]
+				do
+					read a <&4
+					echo $a >&5
+				done
+				
+			a=""
+			while [[ $a != "END_TURN" ]]
+				do
+					read a <&6
+					echo $a >&3
+				done
+			
+		done
+	fi
+
+# ai vs ai
+if [[ ($ai1 != "") && ($ai2 != "") ]]
+	then
+		./sredniowiecze_gui_linux64_v1/sredniowiecze_gui_with_libs.sh <&3 >&4 &
+		./release/middle_ages <&5 >&6 &
+		pid1=$!
+		./release/middle_ages <&7 >&8 &
+		pid2=$!
+		echo -e "$init1\n$init2" >&3
+		echo -e "$init1" >&5
+		echo -e "$init2" >&7
+
+		while [[ 1 ]]
+		do	
+			a=""
+			while [[ $a != "END_TURN" ]]
+				do
+					read a <&6
+					echo $a >&7
+					echo $a >&3
+				done
+				
+			a=""
+			while [[ $a != "END_TURN" ]]
+				do
+					read a <&8
+					echo $a >&5
+					echo $a >&3
+				done
+				
+			wait -n $pid1
+			if [[ $? == 1 ]]; then kill $pid1; fi
+			wait -n $pid2
+			if [[ $? == 1 ]]; then kill $pid2; fi
+			sleep $pauseTime
+		done
+	fi
 	
 #parse result printing
 echo $boardSize
