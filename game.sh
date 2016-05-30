@@ -97,7 +97,7 @@ isNumber() {
 
 
 
-#sprawdzanie poprawnosci
+#sprawdzanie poprawnosci parametrow
 isNumber $x1 $y1 $x2 $y2 $boardSize $pauseTime $turnNumber
 if [[ $? == 0 ]] 
 	then 
@@ -106,24 +106,24 @@ if [[ $? == 0 ]]
 	fi
 
 if [[ ("$x1" -lt 0) || ("$y1" -lt 0) || ("$x2" -lt 0) || ("$y2" -lt 0) || ("$x1" -gt "$boardSize") || ("$x2" -gt "$boardSize") \
-|| ("$y1" -gt "$boardSize") || ("$y2" -gt "$boardSize") || ("$boardSize" -lt 9) || ("$pauseTime" -lt 0) || ("$turnNumber" -lt 1) ]]
+|| ("$y1" -gt "$boardSize") || ("$y2" -gt "$boardSize") || ("$boardSize" -lt 9) || ("$pauseTime" -lt 0) || ("$turnNumber" -lt 1) \
+|| ("$boardSize" -gt 2147483647) ]]
 	then
 		echo "ERROR - WRONG INPUT"
 		exit 1;
 	fi
 
-#TODO - sprawdzanie poprawnosci sciezki AI
+#sprawdzanie poprawnosci sciezki AI
 if [[ ($ai1 != "") && !(-x $ai1) ]]; then echo "Wrong path"; exit 1; fi
 if [[ ($ai2 != "") && !(-x $ai2) ]]; then echo "Wrong path"; exit 1; fi
 
 
-#TODO randomizing the positions if both not given on the input
-#poprawic - musi dac sie krola i inne jednostki rozmiescic
+# randomizing the positions if both not given on the input
 if [[ ($x1 == 0) && ($x2 == 0)]] 
 	then
 		losuj 1 $[$boardSize - 8]
 		x1=$?
-		losuj $[$x1 + 8] $boardSize
+		losuj $[$x1 + 8] $[$boardSize - 3]
 		x2=$?
 		losuj 1 $boardSize
 		y1=$?
@@ -156,7 +156,7 @@ if [[ $x2 == 0 ]]
 	
 if [[ $x1 == 0 ]]
 	then
-		if [[ ("$x2" -lt 9) && ("$y2" -lt 9) && ("$boardSize - $x2" -lt 8) && ("$boardSize - $y2" -lt 8) ]]
+		if [[ ("$x2" -lt 9) && ("$y2" -lt 9) && ("$boardSize - $x2" -lt 11) && ("$boardSize - $y2" -lt 8) ]]
 			then
 				echo "ERROR - NOT ABLE TO RANDOMIZE"
 				exit 1
@@ -166,14 +166,6 @@ if [[ $x1 == 0 ]]
 				echo "NOT READY YET"
 		fi
 	fi
-
-#TO DELETE - tymczasowe
-#x1=1
-#y1=1
-#x2=7
-#y2=9
-
-
 
 # create a temporary named pipe - script input
 PIPE=$(mktemp -u)
@@ -233,7 +225,7 @@ if [[ ($ai1 == "") && ($ai2 == "") ]]
 			./sredniowiecze_gui_with_libs.sh -human1 -human2 <&3 > /dev/null &
 			pidGUI=$!			
 			echo -e "$init1\n$init2" >&3
-			#czemu tak?
+			#czemu ten sleep?
 			sleep 1
 			#TODO tu zakonczyc program jeszcze
 		fi
@@ -290,7 +282,7 @@ if [[ ($ai1 != "") && ($ai2 == "") ]]
 			((tempTury++))
 			
 			#czy koniec tur
-			if [[ $tempTury == $turnNumber ]]; then pkill -P $pidGUI; break; fi
+			if [[ $tempTury == $turnNumber ]]; then sleep 1; pkill -P $pidGUI; break; fi
 			
 			#czy koniec	
 			if !(kill -0 $pid); then pkill -P $pidGUI; break; fi
@@ -353,7 +345,7 @@ if [[ ($ai1 == "") && ($ai2 != "") ]]
 			((tempTury++))
 			
 			#czy koniec tur
-			if [[ $tempTury == $turnNumber ]]; then pkill -P $pidGUI; break; fi
+			if [[ $tempTury == $turnNumber ]]; then sleep 1; pkill -P $pidGUI; break; fi
 			
 			#czy koniec	
 			if !(kill -0 $pid); then pkill -P $pidGUI; break; fi
@@ -448,7 +440,7 @@ if [[ ($ai1 != "") && ($ai2 != "") ]]
 			((tempTury++))
 			
 			#czy koniec tur
-			if [[ $tempTury == $turnNumber ]]; then pkill -P $pidGUI; break; fi
+			if [[ $tempTury == $turnNumber ]]; then sleep 1; pkill -P $pidGUI; break; fi
 									
 			#czy koniec	
 			if !(kill -0 $pid1) || !(kill -0 $pid2); then pkill -P $pidGUI; break; fi
@@ -459,11 +451,3 @@ if [[ ($ai1 != "") && ($ai2 != "") ]]
 		done
 		
 	fi
-	
-#TODELETE parse result printing
-#echo $boardSize
-#echo $turnNumber
-#echo $pauseTime
-#echo $x1 $y1 
-#echo $x2 $y2
-#echo $ai1 $ai2
