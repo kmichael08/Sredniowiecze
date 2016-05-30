@@ -168,10 +168,10 @@ if [[ $x1 == 0 ]]
 	fi
 
 #TO DELETE - tymczasowe
-x1=1
-y1=1
-x2=7
-y2=9
+#x1=1
+#y1=1
+#x2=7
+#y2=9
 
 
 
@@ -230,24 +230,30 @@ init2="INIT $boardSize $turnNumber 2 $x1 $y1 $x2 $y2"
 # human vs human
 if [[ ($ai1 == "") && ($ai2 == "") ]]
 		then 
-			./sredniowiecze_gui_linux64_v1/sredniowiecze_gui_with_libs.sh -human1 -human2 <&3 > /dev/null &
+			./sredniowiecze_gui_with_libs.sh -human1 -human2 <&3 > /dev/null &
 			pidGUI=$!			
-			printf "$init1\n$init2\n" >&3
+			echo -e "$init1\n$init2" >&3
+			#czemu tak?
+			sleep 1
 			#TODO tu zakonczyc program jeszcze
 		fi
 
 # ai vs human
 if [[ ($ai1 != "") && ($ai2 == "") ]]
 	then
-		./sredniowiecze_gui_linux64_v1/sredniowiecze_gui_with_libs.sh -human2 <&3 >&4 &
+		./sredniowiecze_gui_with_libs.sh -human2 <&3 >&4 &
 		pidGUI=$!
 		./$ai1 <&5 >&6 &
 		pid=$!
 		echo -e "$init1\n$init2" >&3
 		echo -e "$init1" >&5
+		
+		tempTury=0
 
 		while [[ 1 ]]
 		do	
+		
+		echo "TURA"
 			a=""
 			while [[ $a != "END_TURN" ]]
 				do
@@ -281,8 +287,13 @@ if [[ ($ai1 != "") && ($ai2 == "") ]]
 						fi
 				done
 			
+			((tempTury++))
+			
+			#czy koniec tur
+			if [[ $tempTury == $turnNumber ]]; then pkill -P $pidGUI; break; fi
+			
 			#czy koniec	
-			if !(kill -0 $pid); then echo $?; pkill -P $pidGUI; break; fi
+			if !(kill -0 $pid); then pkill -P $pidGUI; break; fi
 			
 			#uzytkownik zamknal gui
 			if !(kill -0 $pidGUI); then kill $pid; exit 1; fi
@@ -293,13 +304,15 @@ if [[ ($ai1 != "") && ($ai2 == "") ]]
 # human vs ai
 if [[ ($ai1 == "") && ($ai2 != "") ]]
 	then
-		./sredniowiecze_gui_linux64_v1/sredniowiecze_gui_with_libs.sh -human1 <&3 >&4 &
+		./sredniowiecze_gui_with_libs.sh -human1 <&3 >&4 2> /dev/null &
 		pidGUI=$!
-		./$ai2 <&5 >&6 &
+		./$ai2 <&5 >&6 2> /dev/null &
 		pid=$!
 		
 		echo -e "$init1\n$init2" >&3
 		echo -e "$init2" >&5
+		
+		tempTury=0
 
 		while [[ 1 ]]
 		do	
@@ -337,6 +350,11 @@ if [[ ($ai1 == "") && ($ai2 != "") ]]
 						fi
 				done
 			
+			((tempTury++))
+			
+			#czy koniec tur
+			if [[ $tempTury == $turnNumber ]]; then pkill -P $pidGUI; break; fi
+			
 			#czy koniec	
 			if !(kill -0 $pid); then pkill -P $pidGUI; break; fi
 	
@@ -350,15 +368,17 @@ if [[ ($ai1 == "") && ($ai2 != "") ]]
 # ai vs ai
 if [[ ($ai1 != "") && ($ai2 != "") ]]
 	then
-		./sredniowiecze_gui_linux64_v1/sredniowiecze_gui_with_libs.sh <&3 >&4 &
+		./sredniowiecze_gui_with_libs.sh <&3 >&4 2> /dev/null &
 		pidGUI=$!
-		./$ai1 <&5 >&6 &
+		./$ai1 <&5 >&6 2> /dev/null &
 		pid1=$!
-		./$ai2 <&7 >&8 &
+		./$ai2 <&7 >&8 2> /dev/null &
 		pid2=$!
 		echo -e "$init1\n$init2" >&3
 		echo -e "$init1" >&5
 		echo -e "$init2" >&7
+		
+		tempTury=0
 
 		while [[ 1 ]]
 		do	
@@ -422,7 +442,14 @@ if [[ ($ai1 != "") && ($ai2 != "") ]]
 						fi
 						
 				done
-						
+			
+			sleep $pauseTime
+			
+			((tempTury++))
+			
+			#czy koniec tur
+			if [[ $tempTury == $turnNumber ]]; then pkill -P $pidGUI; break; fi
+									
 			#czy koniec	
 			if !(kill -0 $pid1) || !(kill -0 $pid2); then pkill -P $pidGUI; break; fi
 			
@@ -430,12 +457,13 @@ if [[ ($ai1 != "") && ($ai2 != "") ]]
 			if !(kill -0 $pidGUI); then kill $pid1; kill $pid2; exit 1; fi
 
 		done
+		
 	fi
 	
 #TODELETE parse result printing
-echo $boardSize
-echo $turnNumber
-echo $pauseTime
-echo $x1 $y1 
-echo $x2 $y2
-echo $ai1 $ai2
+#echo $boardSize
+#echo $turnNumber
+#echo $pauseTime
+#echo $x1 $y1 
+#echo $x2 $y2
+#echo $ai1 $ai2
