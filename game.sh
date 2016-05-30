@@ -145,6 +145,7 @@ if [[ ($x1 == 0) && ($x2 == 0)]]
 	
 #TO DO randomizing the positions if one not given on the input	
 
+swapped=0
 #one position not known (x1, y1)
 if [[ $x2 == 0 ]]
 	then
@@ -152,6 +153,7 @@ if [[ $x2 == 0 ]]
 		y2=$y1
 		x1=0
 		y1=0
+		swapped=1
 	fi
 	
 if [[ $x1 == 0 ]]
@@ -163,9 +165,59 @@ if [[ $x1 == 0 ]]
 			else
 				# mamy x1, y1 nieznane a x2, y2 znane
 				# wiemy ze mozna wylosowac
-				echo "NOT READY YET"
-		fi
+				# liczymy pola 4 prostokatow
+				lewy=$[$x2 - 8]
+				prawy=$[$boardSize - 10 - $x2]
+				gorny=$[$y2 - 8]
+				dolny=$[$boardSize - 7 - $y2]
+				if [[ $lewy -lt 0 ]]; then lewy=0; fi
+				if [[ $prawy -lt 0 ]]; then prawy=0; fi
+				if [[ $gorny -lt 0 ]]; then gorny=0; fi
+				if [[ $dolny -lt 0 ]]; then dolny=0; fi
+				
+				left=$[$boardSize * $lewy]
+				right=$[$boardSize * $prawy]
+				
+				width=$[$boardSize - $lewy - $prawy - 3]
+				
+				upper=$[$gorny * $width] 
+				bottom=$[$dolny * $width]
+				
+				echo "$left $right $upper $bottom"
+				
+				losuj 1 $[$left + $right + $upper + $bottom]
+				position=$?
+				
+				if [[ $position -lt $left ]]
+					then
+						losuj 1 $lewy
+						x1=$?
+						losuj 1 $boardSize
+						y1=$?
+				elif [[ $position -lt $[$left + $right] ]]
+					then
+						losuj $[$boardSize - 2 - $prawy] $[$boardSize - 3]
+						x1=$?
+						losuj 1 $boardSize
+						y1=$?
+				elif [[ $position -lt $[$left + $right + $upper] ]]
+					then
+						losuj $[$lewy + 1] $[$boardSize - 3]
+						x1=$?
+						losuj 1 $gorny
+						y1=$?
+				else
+					losuj $[$lewy + 1] $[$boardSize - 3]
+					x1=$?
+					losuj $[$boardSize + 1 - $dolny] $boardSize
+					y1=$?
+				fi
+				
+				if [[ $swapped == 1 ]]; then temp=$x1; x1=$x2; x2=$temp; temp=$y1; y1=$y2; y2=$temp; fi
+				echo "$x1 $y1 $x2 $y2"
+		fi		
 	fi
+	
 
 # create a temporary named pipe - script input
 PIPE=$(mktemp -u)
