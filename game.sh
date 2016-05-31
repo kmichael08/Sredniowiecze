@@ -6,7 +6,6 @@ x1=0 y1=0 x2=0 y2=0
 ai1=""
 ai2=""
 
-
 while [[ $# -gt 0 ]]
 	do
 		flag="$1"
@@ -121,26 +120,42 @@ if [[ ($ai2 != "") && !(-x $ai2) ]]; then echo "Wrong path"; exit 1; fi
 # randomizing the positions if both not given on the input
 if [[ ($x1 == 0) && ($x2 == 0)]] 
 	then
-		losuj 1 $[$boardSize - 8]
-		x1=$?
-		losuj $[$x1 + 8] $[$boardSize - 3]
-		x2=$?
-		losuj 1 $boardSize
-		y1=$?
-		losuj 1 $boardSize
-		y2=$?
 		#x lub y
+		losuj 1 2
+		if [[ ($? == 1) && ($boardSize -gt 11) ]]
+			then
+				losuj 1 $[$boardSize - 11]
+				x1=$?
+				losuj $[$x1 + 8] $[$boardSize - 3]
+				x2=$?
+				losuj 1 $boardSize
+				y1=$?
+				losuj 1 $boardSize
+				y2=$?
+		else	
+			losuj 1 $[$boardSize - 3]
+			x1=$?
+			losuj 1 $[$boardSize - 3]
+			x2=$?
+			losuj 1 $[$boardSize - 8]
+			y1=$?
+			losuj $[$y1 + 8] $boardSize
+			y2=$?
+		fi
+		
 		losuj 1 2
 		if [[ $? == 1 ]]
 			then
 				temp=$x1
-				x1=$y1
-				y1=$temp
-			
-				temp=$x2
-				x2=$y2
-				y2=$temp				
+				x1=$x2
+				x2=$temp
+				
+				temp=$y1
+				y1=$y2
+				y2=$temp
+				
 			fi
+		echo "coordinates : $x1 $y1 $x2 $y2"
 	fi
 	
 #TO DO randomizing the positions if one not given on the input	
@@ -287,7 +302,7 @@ if [[ ($ai1 != "") && ($ai2 == "") ]]
 	then
 		./sredniowiecze_gui_with_libs.sh -human2 <&3 >&4 &
 		pidGUI=$!
-		./$ai1 <&5 >&6 &
+		$ai1 <&5 >&6 &
 		pid=$!
 		echo -e "$init1\n$init2" >&3
 		echo -e "$init1" >&5
@@ -350,7 +365,7 @@ if [[ ($ai1 == "") && ($ai2 != "") ]]
 	then
 		./sredniowiecze_gui_with_libs.sh -human1 <&3 >&4 2> /dev/null &
 		pidGUI=$!
-		./$ai2 <&5 >&6 2> /dev/null &
+		$ai2 <&5 >&6 2> /dev/null &
 		pid=$!
 		
 		echo -e "$init1\n$init2" >&3
@@ -414,9 +429,9 @@ if [[ ($ai1 != "") && ($ai2 != "") ]]
 	then
 		./sredniowiecze_gui_with_libs.sh <&3 >&4 2> /dev/null &
 		pidGUI=$!
-		./$ai1 <&5 >&6 2> /dev/null &
+		$ai1 <&5 >&6 2> /dev/null &
 		pid1=$!
-		./$ai2 <&7 >&8 2> /dev/null &
+		$ai2 <&7 >&8 2> /dev/null &
 		pid2=$!
 		echo -e "$init1\n$init2" >&3
 		echo -e "$init1" >&5
@@ -427,13 +442,15 @@ if [[ ($ai1 != "") && ($ai2 != "") ]]
 		while [[ 1 ]]
 		do	
 			sleep $pauseTime
-			
 			a=""
+						
 			while [[ $a != "END_TURN" ]]
 				do
 					read a <&6
 					echo $a >&7
 					echo $a >&3
+					
+					
 					
 					#blad w ai
 					if !(kill -0 $pid1 2> /dev/null)
@@ -458,7 +475,7 @@ if [[ ($ai1 != "") && ($ai2 != "") ]]
 				done
 				
 			
-	
+			
 				
 			a=""
 			
