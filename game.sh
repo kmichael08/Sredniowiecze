@@ -424,12 +424,10 @@ if [[ ($ai1 != "") && ($ai2 != "") ]]
 		
 		tempTury=0
 
-
-		sleep $pauseTime
-
 		while [[ 1 ]]
 		do	
-		
+			sleep $pauseTime
+			
 			a=""
 			while [[ $a != "END_TURN" ]]
 				do
@@ -458,7 +456,10 @@ if [[ ($ai1 != "") && ($ai2 != "") ]]
 					
 					
 				done
-									
+				
+			
+	
+				
 			a=""
 			
 			while [[ $a != "END_TURN" ]]
