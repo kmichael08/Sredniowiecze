@@ -305,7 +305,7 @@ if [[ ($ai1 != "") && ($ai2 == "") ]]
 					echo $a >&3
 					
 					#blad w ai
-					if !(kill -0 $pid)
+					if !(kill -0 $pid 2> /dev/null)
 						then
 							wait $pid
 							if [[ $? == 42 ]]; 
@@ -321,7 +321,7 @@ if [[ ($ai1 != "") && ($ai2 == "") ]]
 					echo $a >&5
 					
 					#blad w ai
-					if !(kill -0 $pid)
+					if !(kill -0 $pid 2> /dev/null)
 						then
 							wait $pid
 							if [[ $? == 42 ]]; 
@@ -334,13 +334,13 @@ if [[ ($ai1 != "") && ($ai2 == "") ]]
 			((tempTury++))
 			
 			#czy koniec tur
-			if [[ $tempTury == $turnNumber ]]; then sleep 1; pkill -P $pidGUI; break; fi
+			if [[ $tempTury == $turnNumber ]]; then wait $pid; pkill -P $pidGUI; break; fi
 			
 			#czy koniec	
-			if !(kill -0 $pid); then pkill -P $pidGUI; break; fi
+			if !(kill -0 $pid 2> /dev/null); then pkill -P $pidGUI; break; fi
 			
 			#uzytkownik zamknal gui
-			if !(kill -0 $pidGUI); then kill $pid; exit 1; fi
+			if !(kill -0 $pidGUI 2> /dev/null); then kill $pid; exit 1; fi
 			
 		done
 	fi
@@ -367,7 +367,7 @@ if [[ ($ai1 == "") && ($ai2 != "") ]]
 					echo $a >&5
 					
 					#blad w ai
-					if !(kill -0 $pid)
+					if !(kill -0 $pid 2> /dev/null)
 						then
 							wait $pid
 							if [[ $? == 42 ]]; 
@@ -384,7 +384,7 @@ if [[ ($ai1 == "") && ($ai2 != "") ]]
 					echo $a >&3
 					
 					#blad w ai
-					if !(kill -0 $pid)
+					if !(kill -0 $pid 2> /dev/null)
 						then
 							wait $pid
 							if [[ $? == 42 ]]; 
@@ -397,14 +397,14 @@ if [[ ($ai1 == "") && ($ai2 != "") ]]
 			((tempTury++))
 			
 			#czy koniec tur
-			if [[ $tempTury == $turnNumber ]]; then sleep 1; pkill -P $pidGUI; break; fi
+			if [[ $tempTury == $turnNumber ]]; then wait $pid; pkill -P $pidGUI; break; fi
 			
 			#czy koniec	
-			if !(kill -0 $pid); then pkill -P $pidGUI; break; fi
+			if !(kill -0 $pid 2> /dev/null); then pkill -P $pidGUI; break; fi
 	
 		
 			#uzytkownik zamknal gui
-			if !(kill -0 $pidGUI); then kill $pid; exit 1; fi
+			if !(kill -0 $pidGUI 2> /dev/null); then kill $pid; exit 1; fi
 
 		done
 	fi
@@ -424,11 +424,12 @@ if [[ ($ai1 != "") && ($ai2 != "") ]]
 		
 		tempTury=0
 
+
+		sleep $pauseTime
+
 		while [[ 1 ]]
 		do	
 		
-			sleep $pauseTime
-
 			a=""
 			while [[ $a != "END_TURN" ]]
 				do
@@ -437,7 +438,7 @@ if [[ ($ai1 != "") && ($ai2 != "") ]]
 					echo $a >&3
 					
 					#blad w ai
-					if !(kill -0 $pid1)
+					if !(kill -0 $pid1 2> /dev/null)
 						then
 							wait $pid1
 							if [[ $? == 42 ]]; 
@@ -446,7 +447,7 @@ if [[ ($ai1 != "") && ($ai2 != "") ]]
 								fi
 						fi
 					
-					if !(kill -0 $pid2)
+					if !(kill -0 $pid2 2> /dev/null)
 						then
 							wait $pid2
 							if [[ $? == 42 ]]; 
@@ -457,7 +458,7 @@ if [[ ($ai1 != "") && ($ai2 != "") ]]
 					
 					
 				done
-				
+									
 			a=""
 			
 			while [[ $a != "END_TURN" ]]
@@ -467,7 +468,7 @@ if [[ ($ai1 != "") && ($ai2 != "") ]]
 					echo $a >&3
 					
 					#blad w ai
-					if !(kill -0 $pid1)
+					if !(kill -0 $pid1 2> /dev/null)
 						then
 							wait $pid1
 							if [[ $? == 42 ]]; 
@@ -476,7 +477,7 @@ if [[ ($ai1 != "") && ($ai2 != "") ]]
 								fi
 						fi
 					
-					if !(kill -0 $pid2)
+					if !(kill -0 $pid2 2> /dev/null)
 						then
 							wait $pid2
 							if [[ $? == 42 ]]; 
@@ -492,13 +493,23 @@ if [[ ($ai1 != "") && ($ai2 != "") ]]
 			((tempTury++))
 			
 			#czy koniec tur
-			if [[ $tempTury == $turnNumber ]]; then sleep 1; pkill -P $pidGUI; break; fi
+			if [[ $tempTury == $turnNumber ]]; then wait $pid1; pkill -P $pidGUI; break; fi
 									
 			#czy koniec	
-			if !(kill -0 $pid1) || !(kill -0 $pid2); then pkill -P $pidGUI; break; fi
+			if !(kill -0 $pid1 2> /dev/null)
+				then
+					pkill -P $pidGUI; kill $pid2; exit 0
+				fi
+			
+			if !(kill -0 $pid2 2> /dev/null)
+				then 
+					pkill -P $pidGUI; kill $pid1; exit 0
+				fi
 			
 			#uzytkownik zamknal gui
-			if !(kill -0 $pidGUI); then kill $pid1; kill $pid2; exit 1; fi
+			if !(kill -0 $pidGUI 2> /dev/null); then kill $pid1; kill $pid2; exit 1; fi
+			
+			
 
 		done
 		

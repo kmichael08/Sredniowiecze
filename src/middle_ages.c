@@ -28,8 +28,8 @@ int main() {
 		// End of the input.	
 		if (command == NULL) {
 			if(koniecGry()) {
-				if (winner == 0) returnedResult = 1; // draw
-				else if (winner == thisPlayer) returnedResult = 0;
+				if (gameWinner == 0) returnedResult = 1; // draw
+				else if (gameWinner == thisPlayer) returnedResult = 0;
 				else returnedResult = 2;
 				GAME_FINISHED_CORRECTLY
 			}
@@ -94,8 +94,8 @@ int main() {
 		
 		// Game over with a result.
 		if (koniecGry()) {
-			if (winner == 0) returnedResult = 1; // draw
-			else if (winner == thisPlayer) returnedResult = 0;
+			if (gameWinner == 0) returnedResult = 1; // draw
+			else if (gameWinner == thisPlayer) returnedResult = 0;
 			else returnedResult = 2;
 			GAME_FINISHED_CORRECTLY
 		}
