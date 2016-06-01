@@ -453,7 +453,7 @@ if [[ ($ai1 != "") && ($ai2 != "") ]]
 		echo -e "$init2" >&7
 		
 		tempTury=0
-
+				
 		while [[ 1 ]]
 		do	
 		
@@ -506,10 +506,10 @@ if [[ ($ai1 != "") && ($ai2 != "") ]]
 			((tempTury++))
 			
 			#czy koniec tur
-			if [[ "$tempTury" == "$turnNumber" ]]; then sleep 1; wait $pid1; wait $pid2; pkill -P $pidGUI 2> /dev/null; exit 0; fi
+			if [[ "$tempTury" == "$turnNumber" ]]; then wait $pid1; wait $pid2; pkill -P $pidGUI 2> /dev/null; sleep 1; exit 0; fi
 			
 			#uzytkownik zamknal gui
-			if !(kill -0 $pidGUI 2> /dev/null); then sleep 1; kill $pid1; kill $pid2; exit 1; fi
+			if !(kill -0 $pidGUI 2> /dev/null); then kill $pid1; kill $pid2; sleep 1;  exit 1; fi
 			
 
 		done
