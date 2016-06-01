@@ -246,10 +246,10 @@ rm $PIPE
 PIPE=$(mktemp -u)
 mkfifo $PIPE
 # attach it to file descriptor 4
-exec 4<>$PIPE
+exec 24<>$PIPE 4<$PIPE 14>$PIPE 
 # unlink (delete) the named pipe
 rm $PIPE
-
+exec 24>&-
 
 # create a temporary named pipe - ai input
 PIPE=$(mktemp -u)
@@ -263,9 +263,10 @@ rm $PIPE
 PIPE=$(mktemp -u)
 mkfifo $PIPE
 # attach it to file descriptor 6
-exec 6<>$PIPE
+exec 26<>$PIPE 6<$PIPE 16>$PIPE 
 # unlink (delete) the named pipe
 rm $PIPE
+exec 26>&-
 
 # create a temporary named pipe - ai output
 PIPE=$(mktemp -u)
@@ -279,9 +280,11 @@ rm $PIPE
 PIPE=$(mktemp -u)
 mkfifo $PIPE
 # attach it to file descriptor 8
-exec 8<>$PIPE
+exec 28<>$PIPE 8<$PIPE 18>$PIPE 
 # unlink (delete) the named pipe
 rm $PIPE
+exec 28>&-
+
 
 init1="INIT $boardSize $turnNumber 1 $x1 $y1 $x2 $y2"
 init2="INIT $boardSize $turnNumber 2 $x1 $y1 $x2 $y2"
@@ -300,9 +303,12 @@ if [[ ($ai1 == "") && ($ai2 == "") ]]
 # ai vs human
 if [[ ($ai1 != "") && ($ai2 == "") ]]
 	then
-		./sredniowiecze_gui_with_libs.sh -human2 <&3 >&4 &
+		./sredniowiecze_gui_with_libs.sh -human2 <&3 >&14  2> /dev/null &
+		exec 14>&-
 		pidGUI=$!
-		$ai1 <&5 >&6 &
+		$ai1 <&5 >&16 &
+		exec 16>&-
+
 		pid=$!
 		echo -e "$init1\n$init2" >&3
 		echo -e "$init1" >&5
@@ -316,46 +322,51 @@ if [[ ($ai1 != "") && ($ai2 == "") ]]
 			a=""
 			while [[ $a != "END_TURN" ]]
 				do
-					read a <&6
-					echo $a >&3
-					
-					#blad w ai
-					if !(kill -0 $pid 2> /dev/null)
+					if ! read a <&6
 						then
-							wait $pid
-							if [[ $? == 42 ]]; 
-								then 
-									echo "AI ERROR"; pkill -P $pidGUI; exit 1; 
+							echo "KONIEc"; wait $pid
+							ex=$?
+							if [[ "$ex" -gt 2 ]]
+								then
+									exit 1
+								else 
+									exit 0
 								fi
 						fi
+						
+					echo $a >&3
+					
 				done
 			a=""
 			while [[ $a != "END_TURN" ]]
 				do
-					read a <&4
-					echo $a >&5
-					
-					#blad w ai
-					if !(kill -0 $pid 2> /dev/null)
+					if ! read a <&4
 						then
-							wait $pid
-							if [[ $? == 42 ]]; 
-								then 
-									echo "AI ERROR"; pkill -P $pidGUI; exit 1; 
+							echo "KONIEc"; wait $pid
+							ex=$?
+							if [[ "$ex" -gt 2 ]]
+								then
+									exit 1
+								else 
+									exit 0
 								fi
 						fi
+						
+					echo $a >&5
+					
+					
 				done
 			
 			((tempTury++))
-			
+						
 			#czy koniec tur
-			if [[ $tempTury == $turnNumber ]]; then wait $pid; pkill -P $pidGUI; break; fi
+			if [[ $tempTury == $turnNumber ]]; then sleep 1; wait $pid; pkill -P $pidGUI; break; fi
 			
 			#czy koniec	
-			if !(kill -0 $pid 2> /dev/null); then pkill -P $pidGUI; break; fi
+			if !(kill -0 $pid 2> /dev/null); then sleep 1; pkill -P $pidGUI; break; fi
 			
 			#uzytkownik zamknal gui
-			if !(kill -0 $pidGUI 2> /dev/null); then kill $pid; exit 1; fi
+			if !(kill -0 $pidGUI 2> /dev/null); then sleep 1; kill $pid; exit 1; fi
 			
 		done
 	fi
@@ -363,10 +374,13 @@ if [[ ($ai1 != "") && ($ai2 == "") ]]
 # human vs ai
 if [[ ($ai1 == "") && ($ai2 != "") ]]
 	then
-		./sredniowiecze_gui_with_libs.sh -human1 <&3 >&4 2> /dev/null &
+		./sredniowiecze_gui_with_libs.sh -human1 <&3 >&14 2> /dev/null &
+		exec 14>&-
 		pidGUI=$!
-		$ai2 <&5 >&6 2> /dev/null &
+		$ai2 <&5 >&16 2> /dev/null &
 		pid=$!
+		exec 16>&-
+		
 		
 		echo -e "$init1\n$init2" >&3
 		echo -e "$init2" >&5
@@ -378,44 +392,49 @@ if [[ ($ai1 == "") && ($ai2 != "") ]]
 			a=""
 			while [[ $a != "END_TURN" ]]
 				do
-					read a <&4
-					echo $a >&5
-					
-					#blad w ai
-					if !(kill -0 $pid 2> /dev/null)
+					if ! read a <&4
 						then
-							wait $pid
-							if [[ $? == 42 ]]; 
-								then 
-									echo "AI ERROR"; pkill -P $pidGUI; exit 1; 
+							echo "KONIEc"; wait $pid
+							ex=$?
+							if [[ "$ex" -gt 2 ]]
+								then
+									exit 1
+								else 
+									exit 0
 								fi
 						fi
+							
+					echo $a >&5
+					
+					
 				done
 				
 			a=""
 			while [[ $a != "END_TURN" ]]
 				do
-					read a <&6
+					if ! read a <&6
+						then
+							echo "KONIEc"; wait $pid
+							ex=$?
+							if [[ "$ex" -gt 2 ]]
+								then
+									exit 1
+								else 
+									exit 0
+								fi
+						fi	
+						
 					echo $a >&3
 					
-					#blad w ai
-					if !(kill -0 $pid 2> /dev/null)
-						then
-							wait $pid
-							if [[ $? == 42 ]]; 
-								then 
-									echo "AI ERROR"; pkill -P $pidGUI; exit 1; 
-								fi
-						fi
 				done
 			
 			((tempTury++))
-			
+						
 			#czy koniec tur
-			if [[ $tempTury == $turnNumber ]]; then wait $pid; pkill -P $pidGUI; break; fi
+			if [[ $tempTury == $turnNumber ]]; then sleep 1; wait $pid; pkill -P $pidGUI; break; fi
 			
 			#czy koniec	
-			if !(kill -0 $pid 2> /dev/null); then pkill -P $pidGUI; break; fi
+			if !(kill -0 $pid 2> /dev/null); then sleep 1; pkill -P $pidGUI; break; fi
 	
 		
 			#uzytkownik zamknal gui
@@ -427,12 +446,16 @@ if [[ ($ai1 == "") && ($ai2 != "") ]]
 # ai vs ai
 if [[ ($ai1 != "") && ($ai2 != "") ]]
 	then
-		./sredniowiecze_gui_with_libs.sh <&3 >&4 2> /dev/null &
+		./sredniowiecze_gui_with_libs.sh <&3 >&14 2> /dev/null &
+		exec 14>&-
 		pidGUI=$!
-		$ai1 <&5 >&6 2> /dev/null &
+		$ai1 <&5 >&16 2> /dev/null &
+		exec 16>&-
 		pid1=$!
-		$ai2 <&7 >&8 2> /dev/null &
+		$ai2 <&7 >&18  2> /dev/null &
+		exec 18>&-
 		pid2=$!
+		
 		echo -e "$init1\n$init2" >&3
 		echo -e "$init1" >&5
 		echo -e "$init2" >&7
@@ -441,68 +464,37 @@ if [[ ($ai1 != "") && ($ai2 != "") ]]
 
 		while [[ 1 ]]
 		do	
-			sleep $pauseTime
 			a=""
-						
+																
 			while [[ $a != "END_TURN" ]]
 				do
-					read a <&6
+					if ! read a <&6 
+						then
+							echo "KONIEC"; wait $pid1; ex=$?; if [[ "$ex" -gt 2 ]]; then exit 1; fi 
+							wait $pid2; ex=$?; if [[ "$ex" -gt 2 ]]; then exit 1; fi 
+							exit 0
+						fi
+							
 					echo $a >&7
 					echo $a >&3
 					
-					
-					
-					#blad w ai
-					if !(kill -0 $pid1 2> /dev/null)
-						then
-							wait $pid1
-							if [[ $? == 42 ]]; 
-								then 
-									echo "AI ERROR"; kill $pid2; pkill -P $pidGUI; exit 1; 
-								fi
-						fi
-					
-					if !(kill -0 $pid2 2> /dev/null)
-						then
-							wait $pid2
-							if [[ $? == 42 ]]; 
-								then 
-									echo "AI ERROR"; kill $pid1; pkill -P $pidGUI; exit 1; 
-								fi
-						fi
-					
-					
 				done
-				
-			
-			
+							
 				
 			a=""
-			
+			sleep $pauseTime
+
 			while [[ $a != "END_TURN" ]]
 				do
-					read a <&8
+					if ! read a <&8 
+						then
+							echo "KONIEC"; wait $pid1; ex=$?; if [[ "$ex" -gt 2 ]]; then exit 1; fi 
+							wait $pid2; ex=$?; if [[ "$ex" -gt 2 ]]; then exit 1; fi 
+							exit 0						
+						fi
+						
 					echo $a >&5
 					echo $a >&3
-					
-					#blad w ai
-					if !(kill -0 $pid1 2> /dev/null)
-						then
-							wait $pid1
-							if [[ $? == 42 ]]; 
-								then 
-									echo "AI ERROR"; kill $pid2; pkill -P $pidGUI; exit 1; 
-								fi
-						fi
-					
-					if !(kill -0 $pid2 2> /dev/null)
-						then
-							wait $pid2
-							if [[ $? == 42 ]]; 
-								then 
-									echo "AI ERROR"; kill $pid1; pkill -P $pidGUI; exit 1; 
-								fi
-						fi
 						
 				done
 			
@@ -510,22 +502,23 @@ if [[ ($ai1 != "") && ($ai2 != "") ]]
 			
 			((tempTury++))
 			
+			
 			#czy koniec tur
-			if [[ $tempTury == $turnNumber ]]; then wait $pid1; pkill -P $pidGUI; break; fi
+			if [[ "$tempTury" == "$turnNumber" ]]; then sleep 1; wait $pid1; wait $pid2; pkill -P $pidGUI; exit 0; fi
 									
 			#czy koniec	
 			if !(kill -0 $pid1 2> /dev/null)
 				then
-					pkill -P $pidGUI; kill $pid2; exit 0
+					sleep 1; pkill -P $pidGUI; kill $pid2; exit 0
 				fi
 			
 			if !(kill -0 $pid2 2> /dev/null)
 				then 
-					pkill -P $pidGUI; kill $pid1; exit 0
+					sleep 1; pkill -P $pidGUI; kill $pid1; exit 0
 				fi
 			
 			#uzytkownik zamknal gui
-			if !(kill -0 $pidGUI 2> /dev/null); then kill $pid1; kill $pid2; exit 1; fi
+			if !(kill -0 $pidGUI 2> /dev/null); then sleep 1; kill $pid1; kill $pid2; exit 1; fi
 			
 			
 

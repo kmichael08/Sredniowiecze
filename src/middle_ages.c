@@ -86,7 +86,7 @@ int main() {
 		}
 		
 		// Move of this AI programme	
-		if (thisPlayer == actualPlayer) {
+		if (!koniecGry() && thisPlayer == actualPlayer) {
 			printf("END_TURN\n");
 			fflush(stdout);
 			endTurn();
