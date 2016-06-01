@@ -215,19 +215,13 @@ void startGame() {
 void endGame(int correct) { 
 	removeList(globalUnitsList);
 	if (correct) {
-		if (kingOne == kingTwo) gameWinner = 0; //fprintf(stderr, "draw\n");
+		if (kingOne == kingTwo) gameWinner = 0;
 		else if (kingOne > kingTwo) {
-			//fprintf(stderr, "player 1 won\n");
 			gameWinner = 1;
 		 }
 		else {
-			//fprintf(stderr, "player 2 won\n");
 			gameWinner = 2;
 		}
-	}
-	else {
-		//fprintf(stderr, "input error\n");
-		
 	}
 }
 

@@ -155,10 +155,9 @@ if [[ ($x1 == 0) && ($x2 == 0)]]
 				y2=$temp
 				
 			fi
-		echo "coordinates : $x1 $y1 $x2 $y2"
 	fi
 	
-#TO DO randomizing the positions if one not given on the input	
+# randomizing the positions if one not given on the input	
 
 swapped=0
 #one position not known (x1, y1)
@@ -198,6 +197,7 @@ if [[ $x1 == 0 ]]
 				upper=$[$gorny * $width] 
 				bottom=$[$dolny * $width]
 				
+				#TODELETE
 				echo "$left $right $upper $bottom"
 				
 				losuj 1 $[$left + $right + $upper + $bottom]
@@ -229,6 +229,7 @@ if [[ $x1 == 0 ]]
 				fi
 				
 				if [[ $swapped == 1 ]]; then temp=$x1; x1=$x2; x2=$temp; temp=$y1; y1=$y2; y2=$temp; fi
+				#TODELETE
 				echo "$x1 $y1 $x2 $y2"
 		fi		
 	fi
@@ -292,12 +293,9 @@ init2="INIT $boardSize $turnNumber 2 $x1 $y1 $x2 $y2"
 # human vs human
 if [[ ($ai1 == "") && ($ai2 == "") ]]
 		then 
-			./sredniowiecze_gui_with_libs.sh -human1 -human2 <&3 > /dev/null &
-			pidGUI=$!			
+			./sredniowiecze_gui_with_libs.sh -human1 -human2 <&3 > /dev/null &		
 			echo -e "$init1\n$init2" >&3
-			#czemu ten sleep?
 			sleep 1
-			#TODO tu zakonczyc program jeszcze
 		fi
 
 # ai vs human
@@ -306,7 +304,7 @@ if [[ ($ai1 != "") && ($ai2 == "") ]]
 		./sredniowiecze_gui_with_libs.sh -human2 <&3 >&14  2> /dev/null &
 		exec 14>&-
 		pidGUI=$!
-		$ai1 <&5 >&16 &
+		$ai1 <&5 >&16 2> /dev/null &
 		exec 16>&-
 
 		pid=$!
@@ -317,38 +315,39 @@ if [[ ($ai1 != "") && ($ai2 == "") ]]
 
 		while [[ 1 ]]
 		do	
-		
-		echo "TURA"
 			a=""
 			while [[ $a != "END_TURN" ]]
 				do
 					if ! read a <&6
 						then
-							echo "KONIEc"; wait $pid
+							echo "KONIEC"
+							wait $pid
 							ex=$?
 							if [[ "$ex" -gt 2 ]]
 								then
-									exit 1
+									sleep 1; exit 1
 								else 
-									exit 0
+									sleep 1; exit 0
 								fi
 						fi
 						
 					echo $a >&3
 					
 				done
+				
 			a=""
 			while [[ $a != "END_TURN" ]]
 				do
 					if ! read a <&4
 						then
-							echo "KONIEc"; wait $pid
+							echo "KONIEc"
+							wait $pid
 							ex=$?
 							if [[ "$ex" -gt 2 ]]
 								then
-									exit 1
+									sleep 1; exit 1
 								else 
-									exit 0
+									sleep 1; exit 0
 								fi
 						fi
 						
@@ -360,14 +359,11 @@ if [[ ($ai1 != "") && ($ai2 == "") ]]
 			((tempTury++))
 						
 			#czy koniec tur
-			if [[ $tempTury == $turnNumber ]]; then sleep 1; wait $pid; pkill -P $pidGUI; break; fi
+			if [[ $tempTury == $turnNumber ]]; then sleep 1; wait $pid; pkill -P $pidGUI 2> /dev/null; exit 0; fi
 			
 			#czy koniec	
-			if !(kill -0 $pid 2> /dev/null); then sleep 1; pkill -P $pidGUI; break; fi
-			
-			#uzytkownik zamknal gui
-			if !(kill -0 $pidGUI 2> /dev/null); then sleep 1; kill $pid; exit 1; fi
-			
+			if !(kill -0 $pid 2> /dev/null); then sleep 1; pkill -P $pidGUI 2> /dev/null; exit 0; fi
+						
 		done
 	fi
 
@@ -381,7 +377,6 @@ if [[ ($ai1 == "") && ($ai2 != "") ]]
 		pid=$!
 		exec 16>&-
 		
-		
 		echo -e "$init1\n$init2" >&3
 		echo -e "$init2" >&5
 		
@@ -394,18 +389,18 @@ if [[ ($ai1 == "") && ($ai2 != "") ]]
 				do
 					if ! read a <&4
 						then
-							echo "KONIEc"; wait $pid
+							echo "KONIEC"
+							wait $pid
 							ex=$?
 							if [[ "$ex" -gt 2 ]]
 								then
-									exit 1
+									sleep 1; exit 1
 								else 
-									exit 0
+									sleep 1; exit 0
 								fi
 						fi
 							
 					echo $a >&5
-					
 					
 				done
 				
@@ -414,13 +409,14 @@ if [[ ($ai1 == "") && ($ai2 != "") ]]
 				do
 					if ! read a <&6
 						then
-							echo "KONIEc"; wait $pid
+							echo "KONIEc"
+							wait $pid
 							ex=$?
 							if [[ "$ex" -gt 2 ]]
 								then
-									exit 1
+									sleep 1; exit 1
 								else 
-									exit 0
+									sleep 1; exit 0
 								fi
 						fi	
 						
@@ -431,15 +427,11 @@ if [[ ($ai1 == "") && ($ai2 != "") ]]
 			((tempTury++))
 						
 			#czy koniec tur
-			if [[ $tempTury == $turnNumber ]]; then sleep 1; wait $pid; pkill -P $pidGUI; break; fi
+			if [[ $tempTury == $turnNumber ]]; then sleep 1; wait $pid; pkill -P $pidGUI 2> /dev/null; exit 0; fi
 			
 			#czy koniec	
-			if !(kill -0 $pid 2> /dev/null); then sleep 1; pkill -P $pidGUI; break; fi
+			if !(kill -0 $pid 2> /dev/null); then sleep 1; pkill -P $pidGUI 2> /dev/null; exit 0; fi
 	
-		
-			#uzytkownik zamknal gui
-			if !(kill -0 $pidGUI 2> /dev/null); then kill $pid; exit 1; fi
-
 		done
 	fi
 
@@ -449,10 +441,10 @@ if [[ ($ai1 != "") && ($ai2 != "") ]]
 		./sredniowiecze_gui_with_libs.sh <&3 >&14 2> /dev/null &
 		exec 14>&-
 		pidGUI=$!
-		$ai1 <&5 >&16 2> /dev/null &
+		$ai1 <&5 >&16  &
 		exec 16>&-
 		pid1=$!
-		$ai2 <&7 >&18  2> /dev/null &
+		$ai2 <&7 >&18  &
 		exec 18>&-
 		pid2=$!
 		
@@ -464,14 +456,20 @@ if [[ ($ai1 != "") && ($ai2 != "") ]]
 
 		while [[ 1 ]]
 		do	
+		
 			a=""
-																
+																			
 			while [[ $a != "END_TURN" ]]
 				do
 					if ! read a <&6 
 						then
-							echo "KONIEC"; wait $pid1; ex=$?; if [[ "$ex" -gt 2 ]]; then exit 1; fi 
-							wait $pid2; ex=$?; if [[ "$ex" -gt 2 ]]; then exit 1; fi 
+							echo "KONIEC"
+							wait $pid1
+							ex=$?
+							if [[ "$ex" -gt 2 ]]; then sleep 1; exit 1; fi 
+							wait $pid2
+							ex=$?
+							if [[ "$ex" -gt 2 ]]; then sleep 1; exit 1; fi 
 							exit 0
 						fi
 							
@@ -488,8 +486,13 @@ if [[ ($ai1 != "") && ($ai2 != "") ]]
 				do
 					if ! read a <&8 
 						then
-							echo "KONIEC"; wait $pid1; ex=$?; if [[ "$ex" -gt 2 ]]; then exit 1; fi 
-							wait $pid2; ex=$?; if [[ "$ex" -gt 2 ]]; then exit 1; fi 
+							echo "KONIEC"
+							wait $pid1
+							ex=$?
+							if [[ "$ex" -gt 2 ]]; then sleep 1; exit 1; fi 
+							wait $pid2
+							ex=$?
+							if [[ "$ex" -gt 2 ]]; then exit 1; fi 
 							exit 0						
 						fi
 						
@@ -502,24 +505,11 @@ if [[ ($ai1 != "") && ($ai2 != "") ]]
 			
 			((tempTury++))
 			
-			
 			#czy koniec tur
-			if [[ "$tempTury" == "$turnNumber" ]]; then sleep 1; wait $pid1; wait $pid2; pkill -P $pidGUI; exit 0; fi
-									
-			#czy koniec	
-			if !(kill -0 $pid1 2> /dev/null)
-				then
-					sleep 1; pkill -P $pidGUI; kill $pid2; exit 0
-				fi
-			
-			if !(kill -0 $pid2 2> /dev/null)
-				then 
-					sleep 1; pkill -P $pidGUI; kill $pid1; exit 0
-				fi
+			if [[ "$tempTury" == "$turnNumber" ]]; then sleep 1; wait $pid1; wait $pid2; pkill -P $pidGUI 2> /dev/null; exit 0; fi
 			
 			#uzytkownik zamknal gui
 			if !(kill -0 $pidGUI 2> /dev/null); then sleep 1; kill $pid1; kill $pid2; exit 1; fi
-			
 			
 
 		done
