@@ -198,7 +198,7 @@ if [[ $x1 == 0 ]]
 				bottom=$[$dolny * $width]
 				
 				#TODELETE
-				echo "$left $right $upper $bottom"
+				#echo "$left $right $upper $bottom"
 				
 				losuj 1 $[$left + $right + $upper + $bottom]
 				position=$?
@@ -230,7 +230,7 @@ if [[ $x1 == 0 ]]
 				
 				if [[ $swapped == 1 ]]; then temp=$x1; x1=$x2; x2=$temp; temp=$y1; y1=$y2; y2=$temp; fi
 				#TODELETE
-				echo "$x1 $y1 $x2 $y2"
+				#echo "$x1 $y1 $x2 $y2"
 		fi		
 	fi
 	
@@ -320,7 +320,6 @@ if [[ ($ai1 != "") && ($ai2 == "") ]]
 				do
 					if ! read a <&6
 						then
-							echo "KONIEC"
 							wait $pid
 							ex=$?
 							if [[ "$ex" -gt 2 ]]
@@ -340,7 +339,6 @@ if [[ ($ai1 != "") && ($ai2 == "") ]]
 				do
 					if ! read a <&4
 						then
-							echo "KONIEc"
 							wait $pid
 							ex=$?
 							if [[ "$ex" -gt 2 ]]
@@ -389,7 +387,6 @@ if [[ ($ai1 == "") && ($ai2 != "") ]]
 				do
 					if ! read a <&4
 						then
-							echo "KONIEC"
 							wait $pid
 							ex=$?
 							if [[ "$ex" -gt 2 ]]
@@ -409,7 +406,6 @@ if [[ ($ai1 == "") && ($ai2 != "") ]]
 				do
 					if ! read a <&6
 						then
-							echo "KONIEc"
 							wait $pid
 							ex=$?
 							if [[ "$ex" -gt 2 ]]
@@ -457,19 +453,18 @@ if [[ ($ai1 != "") && ($ai2 != "") ]]
 		while [[ 1 ]]
 		do	
 		
-			a=""
-																			
+			a=""															
 			while [[ $a != "END_TURN" ]]
 				do
 					if ! read a <&6 
 						then
-							echo "KONIEC"
 							wait $pid1
 							ex=$?
 							if [[ "$ex" -gt 2 ]]; then sleep 1; exit 1; fi 
 							wait $pid2
 							ex=$?
 							if [[ "$ex" -gt 2 ]]; then sleep 1; exit 1; fi 
+							sleep 1
 							exit 0
 						fi
 							
@@ -486,13 +481,13 @@ if [[ ($ai1 != "") && ($ai2 != "") ]]
 				do
 					if ! read a <&8 
 						then
-							echo "KONIEC"
 							wait $pid1
 							ex=$?
 							if [[ "$ex" -gt 2 ]]; then sleep 1; exit 1; fi 
 							wait $pid2
 							ex=$?
-							if [[ "$ex" -gt 2 ]]; then exit 1; fi 
+							if [[ "$ex" -gt 2 ]]; then sleep 1; exit 1; fi 
+							sleep 1
 							exit 0						
 						fi
 						
@@ -506,7 +501,7 @@ if [[ ($ai1 != "") && ($ai2 != "") ]]
 			((tempTury++))
 			
 			#czy koniec tur
-			if [[ "$tempTury" == "$turnNumber" ]]; then wait $pid1; wait $pid2; pkill -P $pidGUI 2> /dev/null; sleep 1; exit 0; fi
+			if [[ "$tempTury" == "$turnNumber" ]]; then wait $pid1; wait $pid2; sleep 1; pkill -P $pidGUI 2> /dev/null;  exit 0; fi
 			
 			#uzytkownik zamknal gui
 			if !(kill -0 $pidGUI 2> /dev/null); then kill $pid1; kill $pid2; sleep 1;  exit 1; fi
