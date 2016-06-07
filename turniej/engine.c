@@ -182,7 +182,7 @@ UnitsList findUnit(int x, int y) {
  */
 static int walka(UnitsList unitFirst, UnitsList unitSecond) {
 	int x = unitFirst->x;
-	int y = unitSecond->y;
+	int y = unitFirst->y;
 	
 	if (unitFirst->priority > unitSecond->priority)  {
 		gameBoard[x][y] = unitFirst;
@@ -261,10 +261,11 @@ int move(int x1, int y1, int x2, int y2) {
 	if(unitSecond != NULL && unitSecond->player == actualPlayer) return 1;
 
 	// moving on the enemy unit or the empty field
-	gameBoard[x1][y1] = NULL;
 	unitFirst->x = x2;
 	unitFirst->y = y2;
 	gameBoard[x2][y2] = unitFirst;
+	gameBoard[x1][y1] = NULL;
+
 	// jesli przesuwamy krola
 	if (unitFirst->type == KING) {
 		if (actualPlayer == 1) {
@@ -329,11 +330,23 @@ int tryproducepeasant(int direction, int i, int j) {
 	if (!producePeasant(i, j, i, j + direction)) {
 		printf("PRODUCE_PEASANT %d %d %d %d\n", i, j, i, j + direction);
 		fflush(stdout);
+		return 1;
 	}
+	return 0;
 }
 
+void movewithwrite(int x1, int y1, int x2, int y2) {
+	if(move(x1, y1, x2, y2)) return;
+	printf("MOVE %d %d %d %d\n", x1, y1, x2, y2);
+	fflush(stdout);
+}
+
+
 int tryproduce(int i, int j) {
-	const int peasant = 20;
+	int peasant;
+	
+	if (actualTurnNumber < 10) peasant = 50;
+	else peasant = 10;
 	
 	int los = rand() % 100;
 	
@@ -341,22 +354,58 @@ int tryproduce(int i, int j) {
 		if (los > peasant)
 			tryproduceknight(1, i, j);
 		else
-			tryproducepeasant(1, i, j);
+			{
+			if (tryproducepeasant(1, i, j)) {
+					movewithwrite(i, j + 1, i - 1, j + 1);
+					movewithwrite(i, j + 1, i + 1, j + 1);				
+				}
+			
+			}
 	}
 	if (actualPlayer == 2) {
 		if (los > peasant)
 			tryproduceknight(-1, i, j);
 		else
-			tryproducepeasant(-1, i, j);	
+			if (tryproducepeasant(-1, i, j)) {
+				movewithwrite(i, j - 1, i - 1, j - 1);
+				movewithwrite(i, j - 1, i + 1, j - 1);				
+			}	
 	}
+}
+
+
+void prodpeaswithwrite(int x1, int y1, int x2, int y2) {
+	if(producePeasant(x1, y1, x2, y2)) return;
+	printf("PRODUCE_PEASANT %d %d %d %d\n", x1, y1, x2, y2);
+	fflush(stdout);
+
+}
+
+void prodrycwithwrite(int x1, int y1, int x2, int y2) {
+	if (produceKnight(x1, y1, x2, y2)) return;
+	printf("PRODUCE_KNIGHT %d %d %d %d\n", x1, y1, x2, y2);
+	fflush(stdout);
+
+}
+
+void zakonczture() {
+	endTurn();
+	printf("END_TURN\n");
+	fflush(stdout);
+}
+
+int sgn(int number) {
+	if (number > 0) return 1;
+	else if (number == 0) return 0;
+	return -1;
 }
 
 void ruch() {
 	srand(time(NULL));
 		
 	int i, j;
-	for (i = 1; i <= 20; i++)
-		for (j = 1; j <= 20; j++) {
+	for (i = 1; i <= globalBoardSize; i++)
+		for (j = 1; j <= globalBoardSize; j++) {
 			UnitsList unit = gameBoard[i][j];
 			
 			if (unit == NULL) continue;
@@ -368,50 +417,30 @@ void ruch() {
 			
 			if (unit->type == KNIGHT) {
 				if (actualPlayer == 1) {
-					if (!move(i, j, i, j + 1)) {
-						printf("MOVE %d %d %d %d\n", i, j, i, j + 1);
-						fflush(stdout);
-					}
+					int dir1, dir2;
+					dir1 = sgn(kingx2 - i);
+					dir2 = sgn(kingy2 - j);
+					movewithwrite(i, j, i + dir1, j + dir2);
+				
+
 					
-					if (!move(i, j, i + 1, j + 1)) {
-						printf("MOVE %d %d %d %d\n", i, j, i + 1, j + 1);
-						fflush(stdout);
-					}
-					
-					if (!move(i, j, i - 1, j + 1)) {
-						printf("MOVE %d %d %d %d\n", i, j, i - 1, j + 1);
-						fflush(stdout);
-					}
-					
+									
 					
 				}
 				if (actualPlayer == 2) {
-					if (!move(i, j, i, j - 1)) {
-						printf("MOVE %d %d %d %d\n", i, j, i, j - 1);
-						fflush(stdout);
-					}	
-					
-					if (!move(i, j, i + 1, j - 1)) {
-						printf("MOVE %d %d %d %d\n", i, j, i + 1, j - 1);
-						fflush(stdout);
-					}
-					
-					if (!move(i, j, i - 1, j - 1)) {
-						printf("MOVE %d %d %d %d\n", i, j, i - 1, j - 1);
-						fflush(stdout);
-					}
-					
+					int dir1, dir2;
+					dir1 = sgn(kingx1 - i);
+					dir2 = sgn(kingy1 - j);
+					movewithwrite(i, j, i + dir1, j + dir2);
+				
 				}		
 				
 			}
-
-			
 			
 		}
 			
-	printf("END_TURN\n");
-			fflush(stdout);
-			endTurn();
-	
+	zakonczture();
+		
+			
 }
-
+	
